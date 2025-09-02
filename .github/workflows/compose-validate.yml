@@ -1,0 +1,40 @@
+name: Compose Validate
+
+on:
+  push:
+    branches: ["feat/**", "prod"]
+    paths:
+      - "docker-compose*.yml"
+      - "apps/**/docker-compose*.yml"
+      - ".github/workflows/compose-validate.yml"
+  pull_request:
+    branches: ["prod", "feat/**"]
+    paths:
+      - "docker-compose*.yml"
+      - "apps/**/docker-compose*.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Validate top-level compose files
+        run: |
+          for f in $(ls -1 docker-compose*.yml 2>/dev/null || true); do
+            echo "Validating $f";
+            docker compose -f "$f" config >/dev/null;
+          done
+
+      - name: Validate nested compose files
+        run: |
+          for f in $(ls -1 apps/**/docker-compose*.yml 2>/dev/null || true); do
+            echo "Validating $f";
+            docker compose -f "$f" config >/dev/null;
+          done
+
+

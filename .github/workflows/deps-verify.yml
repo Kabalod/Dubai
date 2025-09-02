@@ -1,0 +1,66 @@
+name: Verify Python Dependencies
+
+on:
+  pull_request:
+    branches: [ "prod", "main" ]
+  push:
+    branches: [ "prod" ]
+
+jobs:
+  deps:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install pip-tools
+        run: |
+          python -m pip install --upgrade pip
+          pip install pip-tools==7.4.1
+
+      - name: Compile requirements from requirements.in
+        working-directory: apps/realty-main
+        run: |
+          pip-compile --quiet --no-emit-index-url --no-emit-trusted-host --generate-hashes -o requirements.compiled.txt requirements.in
+
+      - name: Install compiled requirements
+        working-directory: apps/realty-main
+        run: |
+          pip install --no-deps --require-hashes -r requirements.compiled.txt
+
+      - name: Pip check
+        run: pip check
+
+      - name: Frontend deps check (Node)
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+        # quick sanity: install and build to validate lock integrity and tooling
+      - name: Frontend install & build
+        working-directory: apps/DXB-frontend-develop
+        run: |
+          corepack enable
+          yarn install --immutable
+          yarn build
+
+      - name: Compare with committed requirements.txt (informational)
+        if: always()
+        working-directory: apps/realty-main
+        run: |
+          if [ -f requirements.txt ]; then
+            echo "Diff compiled vs committed:";
+            diff -u requirements.txt requirements.compiled.txt || true;
+          fi
+
+      - name: Enforce drift (fail if committed requirements.txt differs)
+        if: ${{ github.event_name == 'pull_request' }}
+        working-directory: apps/realty-main
+        run: |
+          if [ -f requirements.txt ]; then
+            diff -q requirements.txt requirements.compiled.txt;
+          fi

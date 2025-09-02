@@ -1,0 +1,23 @@
+{
+  "name": "realty-main",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/realty-main",
+  "targets": {
+    "test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker-compose exec realty-main-web python manage.py test",
+        "cwd": "."
+      }
+    },
+    "migrate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "docker-compose exec realty-main-web python manage.py migrate",
+        "cwd": "."
+      }
+    }
+  },
+  "tags": ["backend", "django"]
+}

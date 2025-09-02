@@ -1,0 +1,22 @@
+# MkDocs build output
+site/
+
+# Caches and temp
+.cache/
+*.tmp
+*.temp
+
+# Logs
+*.log
+logs/
+
+# OS/IDE noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Local env files (keep examples only)
+.env
+.env.*
+!.env.example

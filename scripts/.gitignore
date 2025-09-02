@@ -1,0 +1,14 @@
+# PowerShell/Bash outputs
+*.log
+*.tmp
+*.temp
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Python cache if any
+__pycache__/
+.pytest_cache/

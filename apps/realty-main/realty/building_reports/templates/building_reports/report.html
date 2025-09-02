@@ -1,0 +1,237 @@
+{% load humanize %}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Отчёт по зданиям</title>
+  <style>
+    /* Основные цвета и шрифты */
+    body {
+      background: #f0f0f0;
+      color: #111;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      margin: 0;
+      padding: 2rem;
+    }
+    h2, h3 {
+      font-weight: bold;
+      margin: 1.5rem 0 0.5rem;
+      border-bottom: 4px solid #444;
+      padding-bottom: 0.25rem;
+    }
+    /* Форма выбора */
+    .brutal-form {
+      display: flex;
+      gap: 1rem;
+      margin-bottom: 2rem;
+      background: #ddd;
+      padding: 1rem;
+      border: 4px solid #444;
+    }
+    .brutal-form label {
+      display: flex;
+      align-items: center;
+      font-size: 1rem;
+    }
+    .brutal-form select {
+      margin-left: 0.5rem;
+      padding: 0.5rem;
+      background: #fff;
+      border: 2px solid #000;
+      font-size: 1rem;
+      appearance: none;
+    }
+    /* Таблицы */
+    table.brutal-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 2rem;
+      background: #fff;
+      border: 4px solid #000;
+    }
+    table.brutal-table th,
+    table.brutal-table td {
+      padding: 0.75rem;
+      border: 2px solid #000;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+    table.brutal-table th {
+      background: #444;
+      color: #fff;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    table.brutal-table tr:nth-child(even) td {
+      background: #eee;
+    }
+  </style>
+</head>
+<body>
+
+  <form method="get" class="brutal-form">
+    <label>
+      PF-Building:
+      <select name="pf_building" onchange="this.form.submit()">
+        <option value="">— выберите здание —</option>
+        {% for pf in pf_buildings %}
+          <option value="{{ pf.id }}" {% if pf == selected_pf %}selected{% endif %}>
+            {{ pf.name }} ({{ pf.area.name }})
+          </option>
+        {% endfor %}
+      </select>
+    </label>
+
+    {% if bedroom_choices %}
+      <label>
+        Комнатность:
+        <select name="bedrooms" onchange="this.form.submit()">
+          <option value="">— выберите —</option>
+          {% for br in bedroom_choices %}
+            <option value="{{ br }}" {% if br == selected_bedrooms %}selected{% endif %}>
+              {{ br }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
+    {% endif %}
+  </form>
+
+  {# 1) PF-snapshot #}
+  {% if pf_snapshot %}
+    <h2>PF-snapshot для {{ selected_pf.name }} / {{ selected_bedrooms }}</h2>
+    <p><strong>Всего квартир в здании:</strong> {{ total_units }}</p>
+    <p><strong>Структура комнат:</strong> {{ rooms_structure }}</p>
+
+    <h3>Ads about building</h3>
+    <table class="brutal-table">
+      <tr>
+        <th>Метрика</th><th>Значение</th>
+      </tr>
+      <tr><td>Average sale price</td><td>{{ pf_snapshot.avg_sale_price|intcomma }}</td></tr>
+      <tr><td>Median sale price</td><td>{{ pf_snapshot.median_sale_price|intcomma }}</td></tr>
+      <tr><td>Price range</td>
+          <td>
+            {{ pf_snapshot.min_sale_price|intcomma }}
+             – {{ pf_snapshot.max_sale_price|intcomma }}
+          </td>
+      </tr>
+      <tr><td>Average rent price</td><td>{{ pf_snapshot.avg_rent_price|intcomma }}</td></tr>
+      <tr><td>Median rent price</td><td>{{ pf_snapshot.median_rent_price|intcomma }}</td></tr>
+      <tr><td>Rent price range</td>
+          <td>
+            {{ pf_snapshot.min_rent_price|intcomma }}
+             – {{ pf_snapshot.max_rent_price|intcomma }}
+          </td>
+      </tr>
+      <tr><td>Avg exposure sale</td><td>{{ pf_snapshot.avg_exposure_sale }}</td></tr>
+      <tr><td>Avg exposure rent</td><td>{{ pf_snapshot.avg_exposure_rent }}</td></tr>
+      <tr><td>Sale count</td><td>{{ pf_snapshot.sale_count }}</td></tr>
+      <tr><td>Rent count</td><td>{{ pf_snapshot.rent_count }}</td></tr>
+      <tr><td>Ads per unit sale</td><td>{{ pf_snapshot.ads_per_unit_sale }}</td></tr>
+      <tr><td>Ads per unit rent</td><td>{{ pf_snapshot.ads_per_unit_rent }}</td></tr>
+      <tr><td>ROI</td><td>{{ pf_snapshot.roi }}</td></tr>
+      <tr><td>Liquidity sale</td><td>{{ pf_snapshot.liquidity_sale }}</td></tr>
+      <tr><td>Liquidity rent</td><td>{{ pf_snapshot.liquidity_rent }}</td></tr>
+    </table>
+  {% endif %}
+
+  {# 2) BuildingReportSnapshot #}
+  {% if building_snapshot %}
+    <h2>BuildingReportSnapshot для {{ selected_pf.dld_building }} / {{ selected_bedrooms }}</h2>
+    <table class="brutal-table">
+      <tr><th>Поле</th><th>Текущий год</th><th>Прошлый год</th></tr>
+      <tr>
+        <td>Avg price sales</td>
+        <td>{{ building_snapshot.avg_price_sales|intcomma }}</td>
+        <td>{{ building_snapshot.avg_price_sales_prev|intcomma }}</td>
+      </tr>
+      <tr>
+        <td>Median price sales</td>
+        <td>{{ building_snapshot.median_price_sales|intcomma }}</td>
+        <td>{{ building_snapshot.median_price_sales_prev|intcomma }}</td>
+      </tr>
+      <tr>
+        <td>Min/Max price sales</td>
+        <td>{{ building_snapshot.min_price_sales|intcomma }} – {{ building_snapshot.max_price_sales|intcomma }}</td>
+        <td>{{ building_snapshot.min_price_sales_prev|intcomma }} – {{ building_snapshot.max_price_sales_prev|intcomma }}</td>
+      </tr>
+      <tr>
+        <td>Transactions count sales</td>
+        <td>{{ building_snapshot.transactions_count_sales }}</td>
+        <td>{{ building_snapshot.transactions_count_sales_prev }}</td>
+      </tr>
+      <tr>
+        <td>Liquidity sales</td>
+        <td>{{ building_snapshot.liquidity_sales }}</td>
+        <td>{{ building_snapshot.liquidity_sales_prev }}</td>
+      </tr>
+      <tr>
+        <td>Avg price rental</td>
+        <td>{{ building_snapshot.avg_price_rental|intcomma }}</td>
+        <td>{{ building_snapshot.avg_price_rental_prev|intcomma }}</td>
+      </tr>
+      <tr>
+        <td>Median price rental</td>
+        <td>{{ building_snapshot.median_price_rental|intcomma }}</td>
+        <td>{{ building_snapshot.median_price_rental_prev|intcomma }}</td>
+      </tr>
+      <tr>
+        <td>Transactions count rental</td>
+        <td>{{ building_snapshot.transactions_count_rental }}</td>
+        <td>{{ building_snapshot.transactions_count_rental_prev }}</td>
+      </tr>
+      <tr>
+        <td>Liquidity rental</td>
+        <td>{{ building_snapshot.liquidity_rental }}</td>
+        <td>{{ building_snapshot.liquidity_rental_prev }}</td>
+      </tr>
+    </table>
+  {% endif %}
+
+  {# 3) AreaReportSnapshot #}
+  {% if area_snapshot %}
+    <h2>AreaReportSnapshot для {{ selected_pf.dld_building.area }} / {{ selected_bedrooms }}</h2>
+    <table class="brutal-table">
+      <tr><th>Поле</th><th>Текущий год</th><th>Прошлый год</th></tr>
+      <tr>
+        <td>Avg price sales</td>
+        <td>{{ area_snapshot.avg_price_sales|intcomma }}</td>
+        <td>{{ area_snapshot.avg_price_sales_prev|intcomma }}</td>
+      </tr>
+      <tr>
+        <td>Median price sales</td>
+        <td>{{ area_snapshot.median_price_sales|intcomma }}</td>
+        <td>{{ area_snapshot.median_price_sales_prev|intcomma }}</td>
+      </tr>
+      <tr>
+        <td>Transactions count sales</td>
+        <td>{{ area_snapshot.transactions_count_sales }}</td>
+        <td>{{ area_snapshot.transactions_count_sales_prev }}</td>
+      </tr>
+      <tr>
+        <td>Liquidity sales</td>
+        <td>{{ area_snapshot.liquidity_sales }}</td>
+        <td>{{ area_snapshot.liquidity_sales_prev }}</td>
+      </tr>
+      <tr>
+        <td>Avg price rental</td>
+        <td>{{ area_snapshot.avg_price_rental|intcomma }}</td>
+        <td>{{ area_snapshot.avg_price_rental_prev|intcomma }}</td>
+      </tr>
+      <tr>
+        <td>Transactions count rental</td>
+        <td>{{ area_snapshot.transactions_count_rental }}</td>
+        <td>{{ area_snapshot.transactions_count_rental_prev }}</td>
+      </tr>
+      <tr>
+        <td>Liquidity rental</td>
+        <td>{{ area_snapshot.liquidity_rental }}</td>
+        <td>{{ area_snapshot.liquidity_rental_prev }}</td>
+      </tr>
+    </table>
+  {% endif %}
+
+</body>
+</html>

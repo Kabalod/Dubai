@@ -1,0 +1,11 @@
+[
+  { "Summary": "Включить авто‑run MCP Jira в Cursor", "Description": "Настроить auto-run для инструментов MCP Jira в Cursor." },
+  { "Summary": "Правила перевода задач по PR/коммитам", "Description": "Автоматизировать переходы задач (связка с ключами Jira в коммитах/PR)." },
+  { "Summary": "Подключить Confluence MCP", "Description": "Добавить Confluence MCP и базовые команды: get_page, search_pages, add_comment." },
+  { "Summary": "Починить check-ports.ps1", "Description": "Исправить кавычки/скобки и синтаксис." },
+  { "Summary": "Расширить MCP-SETUP и mcp-jira.md", "Description": "Описать рабочий процесс и политику безопасности MCP." },
+  { "Summary": "Настроить Jira workflow под канбан", "Description": "Проверить статусы и переходы: BACKLOG, К выполнению, В работе, CODE REVIEW, Тестирование." },
+  { "Summary": "Настроить вебхуки Jira", "Description": "Уведомления и интеграция с CI по событиям задач." },
+  { "Summary": "Подготовить и импортировать бэклог MVP", "Description": "Сформировать список задач и импортировать в проект." }
+]
+

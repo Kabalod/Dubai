@@ -1,0 +1,274 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2025-02-08 19:28+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: ru\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#. js-lingui-explicit-id
+#: src/components/autocomplete/autocomplete.tsx:71
+#~ msgid "autocomplete.placeholder"
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: src/pages/Dashboard.tsx:34
+#~ msgid "test.id2"
+#~ msgstr "просто перевод текста на русский"
+
+#. js-lingui-explicit-id
+#: src/pages/Dashboard.tsx:31
+#~ msgid "test.id"
+#~ msgstr "юзер кабинет"
+
+#: src/pages/auth/SignUpForm.tsx:192
+msgid "and I consent to the processing of"
+msgstr "и я соглашаюсь на обработку"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:18
+msgid "All"
+msgstr "Все"
+
+#: src/components/header/Header.tsx:19
+#~ msgid "Analytics"
+#~ msgstr "Аналитика"
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:27
+msgid "Analyze all real transaction data obtained from Dubai Land Department."
+msgstr "Анализируйте все реальные данные о сделках, полученные из Dubai Land Department."
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:41
+msgid "Analyze data received from real estate sales marketplaces."
+msgstr "Анализируйте данные, полученные с рынков недвижимости."
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:22
+msgid "Apartments"
+msgstr "Квартиры"
+
+#: src/pages/Dashboard.tsx:211
+#: src/components/Dashboard/Dashboard.tsx:137
+msgid "APARTMENTS"
+msgstr "КВАРТИРЫ"
+
+#: src/components/autocomplete/AutocompleteBuilding.tsx:77
+#~ msgid "autocomplete.building.placeholder"
+#~ msgstr "Поиск по району, проекту или зданию"
+
+#: src/pages/Dashboard.tsx:204
+#: src/components/Dashboard/Dashboard.tsx:130
+msgid "BUILDINGS"
+msgstr "ЗДАНИЯ"
+
+#: src/pages/auth/LoginForm.tsx:306
+msgid "CHANGE PASSWORD"
+msgstr "ИЗМЕНИТЬ ПАРОЛЬ"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:34
+msgid "Commercial"
+msgstr "Коммерческая"
+
+#: src/pages/auth/SignUpForm.tsx:231
+msgid "CONFIRM"
+msgstr "ПОДТВЕРДИТЬ"
+
+#: src/pages/auth/SignUpForm.tsx:338
+msgid "CREATE ACCOUNT"
+msgstr "СОЗДАТЬ АККАУНТ"
+
+#: src/pages/Dashboard.tsx:218
+#: src/components/Dashboard/Dashboard.tsx:144
+msgid "DEALS"
+msgstr "СДЕЛКИ"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:84
+msgid "Developer"
+msgstr "Застройщик"
+
+#. js-lingui-explicit-id
+#: src/components/autocomplete/AutocompleteDeveloper.tsx:77
+msgid "autocomplete.developer.placeholder"
+msgstr "Застройщик"
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:23
+msgid "DLD"
+msgstr "DLD"
+
+#: src/pages/auth/SignUpForm.tsx:151
+msgid "Enter an email to get started"
+msgstr "Введите email для начала"
+
+#: src/pages/auth/SignUpForm.tsx:206
+msgid "Enter the code to complete the registration"
+msgstr "Введите код для завершения регистрации"
+
+#: src/pages/auth/LoginForm.tsx:192
+msgid "Forgot your password?"
+msgstr "Забыли пароль?"
+
+#: src/pages/auth/SignUpForm.tsx:178
+#~ msgid "I have read the <0>policy agreement</0> and I consent to the processing of personal data"
+#~ msgstr "Я прочитал <0>соглашение о политике</0> и соглашаюсь на обработку персональных данных"
+
+#: src/pages/auth/SignUpForm.tsx:111
+#~ msgid "I have read the <0>policy agreement</0> and I consent to the processing of personal data"
+#~ msgstr ""
+
+#: src/pages/auth/SignUpForm.tsx:188
+msgid "I have read the "
+msgstr "Я прочитал "
+
+#: src/pages/auth/SignUpForm.tsx:148
+msgid "Join us for free!"
+msgstr "Присоединяйтесь к нам бесплатно!"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:30
+msgid "Land"
+msgstr ""
+
+#: src/pages/auth/LoginForm.tsx:184
+#: src/pages/auth/LoginForm.tsx:358
+msgid "LOG IN"
+msgstr "ВОЙТИ"
+
+#: src/pages/auth/LoginForm.tsx:144
+msgid "Log in to your account"
+msgstr "Войдите в свой аккаунт"
+
+#: src/components/header/Header.tsx:17
+#~ msgid "Main"
+#~ msgstr "Главная"
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:37
+msgid "Marketplace"
+msgstr "Маркетплейс"
+
+#: src/pages/auth/LoginForm.tsx:224
+msgid "NEXT"
+msgstr "ДАЛЕЕ"
+
+#: src/pages/auth/LoginForm.tsx:318
+msgid "Now you can log in using a new password"
+msgstr "Теперь вы можете войти, используя новый пароль"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:173
+msgid "OTHER"
+msgstr "ДРУГОЕ"
+
+#: src/pages/Dashboard.tsx:196
+#: src/components/Dashboard/Dashboard.tsx:122
+msgid "Overview"
+msgstr "Обзор"
+
+#: src/pages/auth/LoginForm.tsx:315
+msgid "Password has been successfully updated"
+msgstr "Пароль успешно обновлен"
+
+#: src/pages/auth/LoginForm.tsx:201
+msgid "Password Recovery"
+msgstr "Восстановление пароля"
+
+#: src/pages/auth/LoginForm.tsx:264
+msgid "Password reset"
+msgstr "Сброс пароля"
+
+#: src/components/header/Header.tsx:35
+#~ msgid "Payments"
+#~ msgstr ""
+
+#: src/pages/auth/SignUpForm.tsx:193
+msgid "personal data"
+msgstr "персональных данных"
+
+#: src/pages/auth/SignUpForm.tsx:190
+msgid "policy agreement"
+msgstr "соглашение о политике"
+
+#: src/pages/auth/SignUpForm.tsx:191
+msgid " and I consent to the processing of "
+msgstr " и я соглашаюсь на обработку "
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:90
+msgid "PRICE, AED"
+msgstr "ЦЕНА, AED"
+
+#: src/pages/Dashboard.tsx:213
+#: src/components/Dashboard/Dashboard.tsx:140
+#~ msgid "Reports"
+#~ msgstr "Отчеты"
+
+#: src/pages/auth/LoginForm.tsx:245
+msgid "RESEND"
+msgstr "ОТПРАВИТЬ СНОВА"
+
+#. js-lingui-explicit-id
+#: src/components/MainFilters/MainFilters.tsx:136
+msgid "filters.search"
+msgstr ""
+
+#: src/components/autocomplete/autocomplete.tsx:71
+#~ msgid "SEARCH"
+#~ msgstr "ПОИСК"
+
+#. js-lingui-explicit-id
+#: src/components/autocomplete/AutocompleteBuilding.tsx:79
+msgid "autocomplete.building.placeholder"
+msgstr ""
+
+#: src/components/autocomplete/autocomplete.tsx:71
+#~ msgid "Search by area, project or building"
+#~ msgstr "Поиск по району, проекту или зданию"
+
+#: src/pages/auth/SignUpForm.tsx:239
+msgid "Send the code again"
+msgstr "Отправить код снова"
+
+#: src/pages/auth/SignUpForm.tsx:181
+msgid "SIGN UP"
+msgstr "РЕГИСТРАЦИЯ"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:111
+msgid "SIZE M"
+msgstr ""
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:134
+msgid "SOLD BY"
+msgstr ""
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:153
+msgid "STATUS"
+msgstr ""
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:26
+msgid "Villas"
+msgstr "Виллы"
+
+#: src/pages/auth/SignUpForm.tsx:188
+#~ msgid "We have sent email to "
+#~ msgstr "Мы отправили email на "
+
+#: src/pages/auth/LoginForm.tsx:234
+msgid "We have sent email to {email}"
+msgstr ""
+
+#: src/pages/auth/SignUpForm.tsx:188
+#~ msgid "We have sent the code to "
+#~ msgstr "Мы отправили код на "
+
+#: src/pages/auth/SignUpForm.tsx:203
+msgid "We have sent the code to {email}"
+msgstr ""
+
+#: src/pages/auth/SignUpForm.tsx:248
+msgid "Welcome!"
+msgstr "Добро пожаловать!"
+
+#: src/pages/auth/LoginForm.tsx:253
+msgid "You can resend the email after"
+msgstr "Вы можете отправить email снова после"

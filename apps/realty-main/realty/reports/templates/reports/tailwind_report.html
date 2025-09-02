@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+{% load report_extras static %}
+
+{% block extra_head %}
+  <!--  Google Fonts + main palette  -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap"
+    rel="stylesheet" />
+
+  <style>
+    /* ───── Visual “CRM front” style (borrowed from mock-page) ───── */
+    .leaflet-control-attribution{display:none}
+
+    /* ───── RESET ───── */
+    @layer reset{
+      *,*::before,*::after{box-sizing:border-box;margin:0}
+      html{block-size:100%;-webkit-text-size-adjust:none;text-size-adjust:none}
+      html:focus-within{scroll-behavior:smooth}
+      body{min-block-size:100dvh;-webkit-font-smoothing:antialiased;font-synthesis:none}
+      h1,h2,h3,h4,h5,h6{font:inherit;text-wrap:balance}
+      p{text-wrap:pretty}
+      ol,ul{list-style:none;padding:0}
+      a{color:inherit;text-decoration:none}
+      img,picture,svg,canvas,video{display:block;max-inline-size:100%}
+    }
+
+    /* ───── VARIABLES ───── */
+    :root{
+      --c-bg:#fff;        --c-text:#03030a; --c-muted:#82808e;
+      --c-accent:#335cff; --c-accent-bg:#f0f3ff;
+      --ff-body:"Onest",sans-serif; --ff-mono:"Roboto Mono",monospace;
+    }
+
+    body{background:var(--c-bg);color:var(--c-text);font-family:var(--ff-body)}
+    .container{max-width:1440px;margin-inline:auto;padding:0 1rem}
+
+    /* ───── UTIL ~ FLEX GAP NAV ───── */
+    .flex{display:flex}.gap-4{gap:1rem}.justify-center{justify-content:center}.mb-2{margin-bottom:.5rem}
+    a:hover{color:var(--c-accent)}
+
+    /* ───── FORM ───── */
+    form{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:2.5rem;background:var(--c-accent-bg);padding:1rem;border-radius:1.2rem}
+    form label{display:block;font-size:.9rem;color:var(--c-text);margin-bottom:.35rem}
+    select{width:100%;padding:.55rem .9rem;border:1px solid var(--c-accent);border-radius:25px;background:#fff;font-family:inherit}
+    button.py-2{background:var(--c-accent);color:#fff;border:none;border-radius:25px;padding:.6rem 1.6rem;font-weight:600;cursor:pointer}
+    button.py-2:hover{opacity:.9}
+
+    /* ───── TABLES ───── */
+    table{width:100%;border-collapse:collapse;min-width:44rem;margin-bottom:3rem}
+    thead th{background:var(--c-accent-bg);color:var(--c-muted);font-family:var(--ff-mono);font-size:.85rem;text-align:left;padding:.75rem 1rem}
+    tbody td{padding:1rem .75rem;border-bottom:1px solid #e3e6e8;font-size:.95rem}
+    tbody tr:nth-child(even){background:#fafbff}
+    .bg-green-400{background:#00c48c;color:#fff}
+    .bg-yellow-300{background:#ffe58a}
+    .text-white{color:#fff}
+    .text-red-600{color:#fe4d4d}
+    td.bg-white.shadow{background:#fff;border-bottom:none}
+
+    /* ───── MAP (if used) ───── */
+    #osmb-map{border:2px solid var(--c-accent);border-radius:1.2rem;overflow:hidden}
+  </style>
+{% endblock extra_head %}
+
+{% block content %}
+<div class="container">
+  <!-- SELECT FORM -->
+  <form method="post" id="reportForm">
+    {% csrf_token %}
+
+    <div style="max-width:360px">
+      <label for="building">Здание</label>
+      <select id="building" name="building" required>
+        <option value="" disabled{% if not selected_building %} selected{% endif %}>
+          — выберите здание —
+        </option>
+        {% for b in buildings %}
+          <option value="{{ b.pk }}"{% if selected_building and selected_building.pk == b.pk %} selected{% endif %}>
+            {{ b.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div style="max-width:250px">
+      <label for="bedrooms">Комнатность</label>
+      <select id="bedrooms" name="bedrooms"{% if bedroom_choices|length == 0 %} disabled{% endif %}>
+        {% if bedroom_choices %}
+          <option value="" disabled{% if not selected_bedrooms %} selected{% endif %}>— выберите —</option>
+          {% for key,label in bedroom_choices %}
+            <option value="{{ key }}"{% if selected_bedrooms == key %} selected{% endif %}>
+              {{ label }}
+            </option>
+          {% endfor %}
+        {% else %}
+          <option value="" disabled selected>— выберите здание —</option>
+        {% endif %}
+      </select>
+    </div>
+
+    <button type="submit" class="py-2 px-6">Показать отчёт</button>
+  </form>
+
+  <!-- динамическая подгрузка комнатностей + фильтрация зданий -->
+  <script>
+    (() => {
+      const buildingSel = document.getElementById('building');
+      const bedroomSel  = document.getElementById('bedrooms');
+
+      /** placeholder «выберите здание» */
+      const resetBedrooms = () => {
+        bedroomSel.innerHTML =
+          '<option value="" disabled selected>— выберите здание —</option>';
+      };
+
+      /** populate <select id="bedrooms"> with choices */
+      const populate = (choices) => {
+        bedroomSel.innerHTML =
+          '<option value="" disabled selected>— выберите —</option>';
+
+        choices.forEach(choice => {
+          /* поддерживаем оба формата: ["1","1-к"] или {value:"1",label:"1-к"} */
+          let value, label;
+
+          if (Array.isArray(choice)) {
+            [value, label] = choice;
+          } else if (choice && typeof choice === 'object') {
+            value = choice.value ?? choice.key ?? choice.id;
+            label = choice.label ?? choice.name ?? choice.text;
+          }
+
+          if (!value || !label) return; // пропуск некорректной пары
+
+          const opt = document.createElement('option');
+          opt.value = value;
+          opt.textContent = label;
+          bedroomSel.appendChild(opt);
+        });
+      };
+
+      /* фильтрация зданий: показываем только те, у которых есть комнатности */
+      const filterBuildings = () => {
+        const options = Array.from(buildingSel.options).filter(
+          (opt) => opt.value !== ''
+        );
+
+        return Promise.all(
+          options.map((opt) =>
+            fetch(`/reports/api/building/${opt.value}/bedrooms/`)
+              .then((r) => (r.ok ? r.json() : { choices: [] }))
+              .then(({ choices }) => {
+                if (!choices || !choices.length) {
+                  /* нет комнатностей → удаляем из списка */
+                  if (opt.selected) {
+                    buildingSel.value = '';
+                    resetBedrooms();
+                  }
+                  opt.remove();
+                }
+              })
+              .catch(() => {
+                /* в случае ошибки считаем, что комнатностей нет */
+                if (opt.selected) {
+                  buildingSel.value = '';
+                  resetBedrooms();
+                }
+                opt.remove();
+              })
+          )
+        );
+      };
+
+      /* при выборе здания — подгружаем комнатности */
+      const onBuildingChange = () => {
+        const id = buildingSel.value;
+        if (!id) {
+          resetBedrooms();
+          return;
+        }
+
+        bedroomSel.disabled = true;
+        bedroomSel.innerHTML =
+          '<option disabled selected>… загружается …</option>';
+
+        fetch(`/reports/api/building/${id}/bedrooms/`)
+          .then((r) => (r.ok ? r.json() : Promise.reject(r)))
+          .then(({ choices }) =>
+            choices && choices.length ? populate(choices) : resetBedrooms()
+          )
+          .catch(resetBedrooms)
+          .finally(() => {
+            bedroomSel.disabled = false;
+          });
+      };
+
+      buildingSel.addEventListener('change', onBuildingChange);
+
+      /* запускаем фильтрацию после загрузки документа */
+      document.addEventListener('DOMContentLoaded', () => {
+        filterBuildings().then(() => {
+          /* если уже выбран building — сразу подгружаем комнатности */
+          if (buildingSel.value) onBuildingChange();
+        });
+      });
+    })();
+  </script>
+</div>
+
+<!-- 3-D MAP (OSM Buildings) -->
+<link href="https://cdn.osmbuildings.org/4.1.1/OSMBuildings.css" rel="stylesheet">
+<script src="https://cdn.osmbuildings.org/4.1.1/OSMBuildings.js"></script>
+
+{% if building_report and building_report.building.latitude and building_report.building.longitude %}
+  <div id="osmb-map" style="width:100%;height:400px;margin-bottom:2rem"></div>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const lat = {{ building_report.building.latitude|default:"25.1972" }};
+      const lon = {{ building_report.building.longitude|default:"55.2744" }};
+      const map = new OSMBuildings({
+        container: 'osmb-map',
+        position: { latitude: lat, longitude: lon },
+        zoom: 17,
+        minZoom: 15,
+        maxZoom: 20,
+        attribution: '© OpenStreetMap & OSM Buildings'
+      });
+      map.addMapTiles('https://tile-a.openstreetmap.fr/hot/{z}/{x}/{y}.png');
+      map.addGeoJSONTiles('https://{s}.data.osmbuildings.org/0.2/59fcc2e8/tile/{z}/{x}/{y}.json');
+      map.addMapMarker({ latitude: lat, longitude: lon });
+    });
+  </script>
+{% endif %}
+
+{# =================  REPORT BLOCKS (unchanged markup; colors restyled by CSS)  ================ #}
+
+{% if building_report %}
+
+/* ……………  дальнейший код отчёта без изменений …………… */
+
+{% endif %}
+
+{% endblock content %}

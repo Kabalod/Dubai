@@ -1,0 +1,87 @@
+name: e2e
+
+on:
+  pull_request:
+  push:
+    branches: [ prod, main ]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: realty
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U postgres" 
+          --health-interval 5s 
+          --health-timeout 5s 
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'e2e/package-lock.json'
+
+      - name: Install backend deps
+        working-directory: apps/realty-main
+        run: |
+          pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+
+      - name: Wait for Postgres
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U postgres && break
+            sleep 1
+          done
+
+      - name: Migrate and run backend
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/realty
+        working-directory: apps/realty-main
+        run: |
+          python manage.py migrate --noinput
+          nohup python manage.py runserver 0.0.0.0:8000 >/tmp/django.log 2>&1 &
+          sleep 5
+
+      - name: Install e2e deps
+        working-directory: e2e
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      - name: Run e2e tests
+        working-directory: e2e
+        env:
+          FRONTEND_URL: http://localhost:3000
+          API_URL: http://localhost:8000/api
+        run: npm test
+
+      - name: Upload backend log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: django-log
+          path: /tmp/django.log
+          retention-days: 7

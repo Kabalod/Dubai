@@ -1,0 +1,40 @@
+:root {
+  /* Radii - синхронизированы с index.css */
+  --radius-sm: 0.25rem;   /* 4px */
+  --radius-md: 0.5rem;    /* 8px */  
+  --radius-lg: 0.75rem;   /* 12px */
+  --radius-xl: 1rem;      /* 16px */
+
+  /* Shadows */
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.06);
+
+  /* Colors (can be mapped to existing SCSS vars if needed) */
+  --color-primary: #1677ff;
+  --color-bg: #ffffff;
+  --color-muted: #667085;
+  --color-border: #f0f0f0;
+  /* Extended palette for pages */
+  --color-blue: #1890ff;
+  --color-green: #52c41a;
+  --color-success-deep: #3f8600;
+  --color-gold: #faad14;
+  --color-red: #cf1322;
+  --color-purple: #722ed1;
+  --color-bg-alt: #f0f2f5;
+  --color-header-bg: #fafafa;
+
+  /* Layout */
+  --header-height: 64px;
+}
+
+/* Typography scale (optional baseline) */
+html {
+  --font-size-sm: 12px;
+  --font-size-md: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+}
+
+/* SCSS Variables уже определены в typography.scss - дубликаты удалены */
+
+

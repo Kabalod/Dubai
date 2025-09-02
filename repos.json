@@ -1,0 +1,14 @@
+{
+  "repositories": [
+    {
+      "name": "Workerproject",
+      "path": ".",
+      "default_branch": "main"
+    },
+    {
+      "name": "MemoryProjectDubai",
+      "path": "MemoryProjectDubai",
+      "default_branch": "main"
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+.customSelect {
+  :global(.ant-select-selector) {
+    border-radius: var(--radius-md) !important;
+  }
+
+  &.default :global(.ant-select-selector) {
+    background: #fff;
+  }
+
+  &.ghost :global(.ant-select-selector) {
+    background: transparent;
+    border-color: transparent !important;
+  }
+}
+
+

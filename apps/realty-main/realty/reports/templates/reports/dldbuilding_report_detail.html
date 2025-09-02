@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="overflow-x-auto">
+  <table class="min-w-full text-sm border-separate table-fixed border-spacing-y-4">
+    <thead>
+      <tr class="bg-gray-50">
+        <th class="p-2 w-1/4"></th>
+        <th class="p-2 w-1/6">Building</th>
+        <th class="p-2 w-1/12">Δ</th>
+        <th class="p-2 w-1/6">District</th>
+        <th class="p-2 w-1/12">Δ</th>
+        <th class="p-2 w-1/6">Dubai</th>
+        <th class="p-2 w-1/12">Δ</th>
+        <th class="p-2 w-1/6"></th>
+      </tr>
+    </thead>
+
+    <!-- SALE header -->
+    <tbody class="bg-blue-50 rounded-lg border border-gray-300">
+      <tr>
+        <td class="p-2 font-semibold">DLD Продажа</td>
+        <td colspan="7"></td>
+      </tr>
+    </tbody>
+
+    <!-- SALE rows grouped по две -->
+    {% for row in sale_rows %}
+      {% if forloop.first or not forloop.counter|divisibleby:"2" %}
+        <tbody class="rounded-lg border border-gray-300">
+      {% endif %}
+      <tr class="bg-white">
+        <td class="p-2">{{ row.label }}</td>
+        <td class="p-2">{{ row.current }}</td>
+        <td class="p-2 text-purple-600">{{ row.change }}<br><b></b></td>
+        <td class="p-2 text-blue-600">{{ row.yellow_dist }}</td>
+        <td class="p-2 text-purple-600">{{ row.change_dist }}</td>
+        <td class="p-2 text-blue-600">{{ row.yellow_dub }}</td>
+        <td class="p-2 text-purple-600">{{ row.change_dub }}</td>
+        <td class="p-2"></td>
+      </tr>
+      {% if forloop.counter|divisibleby:"2" or forloop.last %}
+        </tbody>
+      {% endif %}
+    {% endfor %}
+
+    <!-- 3 последние сделки SALE -->
+    <tbody class="rounded-lg border border-gray-300">
+      <tr>
+        <td class="p-2"></td>
+        <td class="p-2" colspan="7">
+          <span class="font-semibold text-red-600">3 последние сделки (продажа):</span><br>
+          {% for tx in report.last_3_sales %}
+            {{ tx.date }} — {{ tx.price }} AED / {{ tx.sqm }} м²<br>
+          {% endfor %}
+        </td>
+      </tr>
+    </tbody>
+
+    <!-- RENT header -->
+    <tbody class="bg-blue-50 rounded-lg border border-gray-300">
+      <tr>
+        <td class="p-2 font-semibold">DLD Аренда</td>
+        <td colspan="7"></td>
+      </tr>
+    </tbody>
+
+    <!-- RENT rows grouped по две -->
+    {% for row in rent_rows %}
+      {% if forloop.first or not forloop.counter|divisibleby:"2" %}
+        <tbody class="rounded-lg border border-gray-300">
+      {% endif %}
+      <tr class="bg-white">
+        <td class="p-2">{{ row.label }}</td>
+        <td class="p-2">{{ row.current }}</td>
+        <td class="p-2 text-purple-600">{{ row.change }}</td>
+        <td class="p-2 text-blue-600">{{ row.yellow_dist }}</td>
+        <td class="p-2 text-purple-600">{{ row.change_dist }}</td>
+        <td class="p-2 text-blue-600">{{ row.yellow_dub }}</td>
+        <td class="p-2 text-purple-600">{{ row.change_dub }}</td>
+        <td class="p-2"></td>
+      </tr>
+      {% if forloop.counter|divisibleby:"2" or forloop.last %}
+        </tbody>
+      {% endif %}
+    {% endfor %}
+
+    <!-- 3 последние сделки RENT -->
+    <tbody class="rounded-lg border border-gray-300">
+      <tr>
+        <td class="p-2"></td>
+        <td class="p-2" colspan="7">
+          <span class="font-semibold text-red-600">3 последние сделки (аренда):</span><br>
+          {% for tx in report.last_3_rents %}
+            {{ tx.date }} — {{ tx.price }} AED / {{ tx.sqm }} м²<br>
+          {% endfor %}
+        </td>
+      </tr>
+    </tbody>
+
+  </table>
+</div>
+
+{% endblock content %}

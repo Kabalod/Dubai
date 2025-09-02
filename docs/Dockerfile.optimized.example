@@ -1,0 +1,50 @@
+# 🐳 Оптимизированный Dockerfile для Django Backend (пример)
+# Перемещён из apps/realty-main/Dockerfile.optimized, 
+# чтобы избежать автодетекта при сборке. Используйте как справочник.
+
+FROM python:3.12-slim AS base
+
+LABEL maintainer="kbalodk@gmail.com"
+LABEL description="Dubai MVP Backend - OTP Authentication System"
+LABEL version="1.0.0"
+
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        libpq-dev \
+        curl \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -r django && useradd -r -g django django
+
+WORKDIR /app
+
+COPY requirements*.txt ./
+
+RUN /bin/sh -c 'pip install --upgrade pip==25.2 && \
+    if [ -f requirements.compiled.txt ]; then \
+        pip install --no-cache-dir --no-deps --require-hashes -r requirements.compiled.txt; \
+    else \
+        pip install --no-cache-dir -r requirements.txt; \
+    fi && pip cache purge'
+
+COPY . .
+
+RUN chown -R django:django /app \
+    && chmod +x /app/manage.py
+
+USER django
+
+ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV DJANGO_SETTINGS_MODULE=realty.settings
+
+EXPOSE 8000
+
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD curl -f http://localhost:8000/api/health/ || exit 1
+
+CMD ["sh", "-c", "python manage.py migrate --run-syncdb && python manage.py runserver 0.0.0.0:8000"]
+
+

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "./Dockerfile",
+    "buildTimeout": 1800,
+    "watchPatterns": ["src/**", "public/**", "*.json", "*.js", "*.ts", "Dockerfile", "Caddyfile"]
+  },
+  "deploy": {
+    "startCommand": "caddy run --config /etc/caddy/Caddyfile --adapter caddyfile",
+    "restartPolicyType": "ON_FAILURE",
+    "restartPolicyMaxRetries": 10,
+    "deploymentTimeout": 1800
+  },
+  "variables": {
+    "NODE_ENV": "production",
+    "NPM_CONFIG_TIMEOUT": "300000",
+    "RAILWAY_DOCKERFILE": "Dockerfile"
+  }
+}

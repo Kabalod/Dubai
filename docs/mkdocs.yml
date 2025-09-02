@@ -1,0 +1,102 @@
+site_name: Dubai Platform Documentation
+site_description: Полная документация платформы недвижимости Dubai
+site_author: Dubai Team
+site_url: https://kabalod.github.io/Workerproject/
+
+repo_name: Kabalod/Workerproject
+repo_url: https://github.com/Kabalod/Workerproject
+edit_uri: edit/main/docs/
+
+theme:
+  name: material
+  language: ru
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+  palette:
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch
+        name: Переключить цветовую схему
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/toggle-switch-off-outline
+        name: Переключить цветовую схему
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - meta
+  - pymdownx.arithmatex:
+      mathjax: true
+  - pymdownx.betterlink
+  - pymdownx.caret
+  - pymdownx.details
+  - pymdownx.emoji:
+      emoji_index: !!python/name:materialx.emoji.twemoji
+      emoji_generator: !!python/name:materialx.emoji.to_svg
+  - pymdownx.highlight:
+      anchor_linenums: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets:
+      check_paths: true
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.tabbed
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - pymdownx.tilde
+
+plugins:
+  - search
+  - mermaid2
+
+nav:
+  - Главная: index.md
+  - Обзор системы: OVERVIEW.md
+  - Навигация: NAVIGATION.md
+  - API:
+    - Обзор API: api/overview.md
+    - Примеры использования: api/examples.md
+  - Развертывание:
+    - Быстрый старт: deployment/quick-start.md
+  - Архитектура:
+    - Обзор архитектуры: architecture/overview.md
+  - Разработка:
+    - Настройка окружения: development/setup.md
+    - "Интеграция с внешними сервисами": external-services-guide.md
+  - Решение проблем:
+    - Частые проблемы: troubleshooting/common-issues.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Kabalod/Workerproject
+    - icon: fontawesome/brands/discord
+      link: https://discord.gg/dubai-platform
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/dubai_platform
+
+extra_css:
+  - stylesheets/extra.css
+
+extra_javascript:
+  - javascripts/extra.js

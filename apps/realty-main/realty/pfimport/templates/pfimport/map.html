@@ -1,0 +1,103 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Link PF→Main Buildings</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+<body>
+  <h3>Выберите район</h3>
+  <select id="area-select">
+    <option value="">---</option>
+    {% for area in areas %}
+      <option value="{{ area.id }}">{{ area.name }}</option>
+    {% endfor %}
+  </select>
+
+  <div id="map" style="height: 600px; margin-top: 1em;"></div>
+
+  <script>
+    const map = L.map('map').setView([0,0], 2);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 18,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    let pfMarkers = [], mainMarkers = [];
+    let selectedPfId = null;
+
+    document.getElementById('area-select').addEventListener('change', function(){
+      const areaId = this.value;
+      if(!areaId) return;
+      fetch(`{% url 'pfimport:buildings_json' %}?area_id=${areaId}`)
+        .then(r => r.json())
+        .then(data => {
+          // очистить старые точки
+          pfMarkers.forEach(m => map.removeLayer(m));
+          mainMarkers.forEach(m => map.removeLayer(m));
+          pfMarkers = []; mainMarkers = [];
+
+          // добавить PF (красные)
+          data.pf.forEach(b => {
+            const marker = L.circleMarker([b.lat, b.lng], {
+              color: 'red', radius: 8, fillOpacity: 1
+            }).addTo(map);  // НОВОЕ: красный
+            marker.bindPopup(`
+              <b>${b.name}</b><br>
+              <button onclick="selectPf(${b.id})">Link this PF</button>
+            `);
+            pfMarkers.push(marker);
+          });
+
+          // добавить Main (синие)
+          data.main.forEach(b => {
+            const marker = L.circleMarker([b.lat, b.lng], {
+              color: 'blue', radius: 8, fillOpacity: 1
+            }).addTo(map);  // НОВОЕ: синий
+            marker.bindPopup(() => {
+              let html = `<b>${b.name}</b>`;
+              if (selectedPfId) {
+                html += `<br><button onclick="link(${b.id})">Link to selected PF</button>`;
+              }
+              return html;
+            });
+            mainMarkers.push(marker);
+          });
+
+          // центрирование на первой точке
+          const focus = data.pf[0] || data.main[0];
+          if (focus) map.setView([focus.lat, focus.lng], 13);
+        });
+    });
+
+    function selectPf(id) {
+      selectedPfId = id;
+      alert('PF-Building выбран. Теперь кликните по синей точке, чтобы связать.');
+    }
+
+    function link(mainId) {
+      if (!selectedPfId) {
+        alert('Сначала выберите PF-Building.');
+        return;
+      }
+      fetch(`{% url 'pfimport:link_buildings' %}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: `pf_id=${selectedPfId}&main_id=${mainId}`
+      })
+      .then(r => r.json())
+      .then(resp => {
+        if (resp.status === 'ok') {
+          alert('Успешно связали PF → Main!');
+          selectedPfId = null;
+        }
+      });
+    }
+  </script>
+</body>
+</html>

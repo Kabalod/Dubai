@@ -1,0 +1,7 @@
+# Railway Force Rebuild File
+# This file forces Railway to rebuild from scratch
+timestamp: 2025-01-29T15:30:00Z
+version: 0.1.2
+cache-bust: true
+apollo-removed: true
+build-id: force-rebuild-003

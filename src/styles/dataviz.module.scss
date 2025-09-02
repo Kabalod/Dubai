@@ -1,0 +1,82 @@
+@use "./tokens.scss" as *;
+
+.sectionCard {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+
+.sectionHeader {
+  padding: 12px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid var(--color-border);
+
+  .sectionTitle {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: #1f2937;
+  }
+}
+
+.chartContainer {
+  padding: 16px;
+  height: 300px;
+}
+
+.statCard {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.statistic {
+  :global(.ant-statistic-title) {
+    color: var(--color-muted);
+    font-size: var(--font-size-sm);
+  }
+}
+
+.statGreen :global(.ant-statistic-content) { color: #3f8600; }
+.statBlue :global(.ant-statistic-content) { color: #1890ff; }
+.statPurple :global(.ant-statistic-content) { color: #722ed1; }
+.statRed :global(.ant-statistic-content) { color: #cf1322; }
+.statOrange :global(.ant-statistic-content) { color: #fa8c16; }
+
+.legendTopLeft {
+  /* For antv charts legend position overrides if needed */
+}
+
+/* Attach to ProCard root to style header via classes (no inline headStyle) */
+.proCard {
+  :global(.ant-pro-card-header) {
+    background: #fafafa;
+    border-bottom: 1px solid var(--color-border);
+    padding: 12px 16px;
+  }
+  :global(.ant-pro-card-title) {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: #1f2937;
+  }
+}
+
+.pageContainer {
+  padding: 24px;
+  background: #f0f2f5;
+}
+
+.mb24 { margin-bottom: 24px; }
+.mb6 { margin-bottom: 24px; }
+.fullWidth { width: 100%; }
+.w100 { width: 100%; }
+.selectSm { width: 120px; }
+.selectMd { width: 150px; }
+.pad16 { padding: 16px; }
+.bold { font-weight: 600; }
+.textBlue { color: #1890ff; }
+.textGreen { color: #52c41a; }
+.textRed { color: #cf1322; }
+.textOrange { color: #faad14; }
+
+

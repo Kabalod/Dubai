@@ -1,0 +1,615 @@
+{% extends "base.html" %}
+{% load report_extras static %}
+
+{% block content %}
+<div class="px-4 mx-auto space-y-12 max-w-7xl sm:px-6 lg:px-8">
+
+  {# =================== ФОРМА ВЫБОРА =================== #}
+  <form method="post"
+        class="flex flex-wrap gap-6 items-end p-6 bg-white rounded-lg shadow">
+    {% csrf_token %}
+
+    <div class="w-full sm:w-1/2 lg:w-1/3">
+      <label for="building"
+             class="block mb-1 text-sm font-medium text-gray-700">Здание</label>
+      <select id="building" name="building"
+              class="block w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+        <option value="" disabled {% if not selected_building %}selected{% endif %}>
+          — выберите здание —
+        </option>
+        {% for b in buildings %}
+          <option value="{{ b.pk }}"
+                  {% if selected_building and b.pk == selected_building.pk %}selected{% endif %}>
+            {{ b.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="w-full sm:w-1/3 lg:w-1/5">
+      <label for="bedrooms"
+             class="block mb-1 text-sm font-medium text-gray-700">Комнатность</label>
+      <select id="bedrooms" name="bedrooms"
+              class="block w-full rounded-lg border-gray-300 focus:border-indigo-500 focus:ring-indigo-500">
+        <option value="" disabled {% if not selected_bedrooms %}selected{% endif %}>
+          — выберите —
+        </option>
+        {% for key, label in bedroom_choices %}
+          <option value="{{ key }}"
+                  {% if selected_bedrooms == key %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <button type="submit"
+            class="inline-flex gap-2 items-center py-2 px-6 font-semibold text-white whitespace-nowrap bg-indigo-600 rounded-lg shadow transition hover:bg-indigo-700">
+      Just report
+    </button>
+  </form>
+
+  {# =================== КАРТА =================== #}
+  {% if building_report and building_report.building.latitude and building_report.building.longitude %}
+    <div class="overflow-hidden bg-white rounded-lg shadow">
+      <div id="osmb-map" style="width:100%;height:400px;"></div>
+    </div>
+    <link href="https://cdn.osmbuildings.org/4.1.1/OSMBuildings.css" rel="stylesheet">
+    <script src="https://cdn.osmbuildings.org/4.1.1/OSMBuildings.js"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+        const lat = {{ building_report.building.latitude|default:"25.1972" }};
+        const lon = {{ building_report.building.longitude|default:"55.2744" }};
+        const map = new OSMBuildings({
+          container: 'osmb-map',
+          position: { latitude: lat, longitude: lon },
+          zoom: 17,
+          minZoom: 15,
+          maxZoom: 20,
+          attribution:
+            '© Data <a href="https://openstreetmap.org/copyright/">OpenStreetMap</a> · ' +
+            '© Map <a href="https://osmbuildings.org/copyright/">OSM Buildings</a>'
+        });
+        map.addMapTiles('https://tile-a.openstreetmap.fr/hot/{z}/{x}/{y}.png');
+        map.addGeoJSONTiles('https://{s}.data.osmbuildings.org/0.2/59fcc2e8/tile/{z}/{x}/{y}.json');
+        map.addMapMarker({ latitude: lat, longitude: lon });
+      });
+    </script>
+  {% endif %}
+
+  {# =================== ПРОДАЖА =================== #}
+  {% if building_report %}
+    <section class="p-6 bg-white rounded-lg shadow">
+      <h3 class="mb-6 text-2xl font-semibold">Продажа</h3>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="py-2 px-4 font-medium text-left">Метрика</th>
+              <th class="py-2 px-4 font-medium text-left">BuildingReport</th>
+              <th class="py-2 px-4 font-medium text-left">AreaReport</th>
+              <th class="py-2 px-4 font-medium text-left">CityReport</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+
+            {# --- средняя цена --- #}
+            <tr>
+              <td class="py-3 px-4">Средняя цена</td>
+              <td class="py-3 px-4 bg-green-50 number-cell"
+                  data-value="{{ building_report.avg_sale_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 bg-green-50 number-cell"
+                  data-value="{{ area_report.avg_sale_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 bg-green-50 number-cell"
+                  data-value="{{ city_report.avg_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- средняя по зданию --- #}
+            <tr>
+              <td class="py-3 px-4">Средняя по зданию</td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.avg_sale_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ area_report.avg_sale_price_by_building|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ city_report.avg_price_by_building|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- медиана --- #}
+            <tr>
+              <td class="py-3 px-4">Медиана</td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.median_sale_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ area_report.median_sale_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ city_report.median_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- разброс цен --- #}
+            <tr>
+              <td class="py-3 px-4">Разброс цен</td>
+              <td class="py-3 px-4 range-cell"
+                  data-min="{{ building_report.min_sale_price|default_if_none:'' }}"
+                  data-max="{{ building_report.max_sale_price|default_if_none:'' }}">
+                <span class="inline-block w-20 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 range-cell"
+                  data-min="{{ area_report.min_sale_price|default_if_none:'' }}"
+                  data-max="{{ area_report.max_sale_price|default_if_none:'' }}">
+                <span class="inline-block w-20 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 range-cell"
+                  data-min="{{ city_report.min_price|default_if_none:'' }}"
+                  data-max="{{ city_report.max_price|default_if_none:'' }}">
+                <span class="inline-block w-20 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- кол-во объявлений --- #}
+            <tr>
+              <td class="py-3 px-4">Кол-во объявлений</td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.sale_count|default_if_none:'' }}">
+                <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell" data-value="">
+                <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell" data-value="">
+                <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- средняя экспозиция --- #}
+            <tr>
+              <td class="py-3 px-4">Средняя экспозиция</td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.avg_exposure_sale_days|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ area_report.avg_exposure_sale_days|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ city_report.avg_exposure_days|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- удельная частота продаж --- #}
+            <tr class="bg-yellow-50">
+              <td class="py-3 px-4"> <b>кол Объявлений / кол Квартир </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.sale_per_unit_ratio|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ area_report.avg_sale_per_unit_ratio|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ ratio_minus_004|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- ROI --- #}
+            <tr class="bg-yellow-50">
+              <td class="py-3 px-4">ROI</td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.roi|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ area_report.avg_roi|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ city_report.avg_roi|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {# =================== АРЕНДА =================== #}
+    <section class="p-6 bg-white rounded-lg shadow">
+      <h3 class="mb-6 text-2xl font-semibold">Аренда</h3>
+
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm divide-y divide-gray-200">
+          <thead class="bg-gray-50">
+            <tr>
+              <th class="py-2 px-4 font-medium text-left">Метрика</th>
+              <th class="py-2 px-4 font-medium text-left">BuildingReport</th>
+              <th class="py-2 px-4 font-medium text-left">AreaReport</th>
+              <th class="py-2 px-4 font-medium text-left">CityReport</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-gray-100">
+
+            {# --- средняя цена аренды --- #}
+            <tr>
+              <td class="py-3 px-4">Средняя цена аренды</td>
+              <td class="py-3 px-4 bg-green-50 number-cell"
+                  data-value="{{ building_report.avg_rent_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 bg-green-50 number-cell"
+                  data-value="{{ area_report.avg_rent_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 bg-green-50 number-cell"
+                  data-value="{{ city_report.avg_rent_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- средняя по зданию (аренда) --- #}
+            <tr>
+              <td class="py-3 px-4">Средняя по зданию</td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.avg_rent_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ area_report.avg_rent_price_by_building|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ city_report.avg_rent_price_by_building|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- медиана аренды --- #}
+            <tr>
+              <td class="py-3 px-4">Медиана аренды</td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.median_rent_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ area_report.median_rent_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ city_report.median_rent_price|default_if_none:'' }}">
+                <span class="inline-block w-16 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- разброс аренды --- #}
+            <tr>
+              <td class="py-3 px-4">Разброс цен аренды</td>
+              <td class="py-3 px-4 range-cell"
+                  data-min="{{ building_report.min_rent_price|default_if_none:'' }}"
+                  data-max="{{ building_report.max_rent_price|default_if_none:'' }}">
+                <span class="inline-block w-20 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 range-cell"
+                  data-min="{{ area_report.min_rent_price|default_if_none:'' }}"
+                  data-max="{{ area_report.max_rent_price|default_if_none:'' }}">
+                <span class="inline-block w-20 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 range-cell"
+                  data-min="{{ city_report.min_rent_price|default_if_none:'' }}"
+                  data-max="{{ city_report.max_rent_price|default_if_none:'' }}">
+                <span class="inline-block w-20 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- кол-во объявлений аренды --- #}
+            <tr>
+              <td class="py-3 px-4">Кол-во объявлений аренды</td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.rent_count|default_if_none:'' }}">
+                <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell" data-value="">
+                <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell" data-value="">
+                <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- средняя экспозиция аренды --- #}
+            <tr>
+              <td class="py-3 px-4">Средняя экспозиция аренды</td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.avg_exposure_rent_days|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ area_report.avg_exposure_rent_days|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ city_report.avg_exposure_rent_days|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+            {# --- ROI аренды --- #}
+            <tr class="bg-yellow-50">
+              <td class="py-3 px-4">кол Объявлений / кол Квартир</td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ building_report.roi|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ area_report.avg_rent_per_unit_ratio|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+              <td class="py-3 px-4 number-cell"
+                  data-value="{{ ratio_minus_005|floatformat:'3'|default_if_none:'' }}">
+                <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    {# =================== DLD BLOCK =================== #}
+    {% if dld_report %}
+    квартиры разных комнатностей:
+    {{ building_report.dld_building.arabic_name }}
+      <section class="p-6 space-y-12 bg-white rounded-lg shadow">
+        <h3 class="text-2xl font-semibold">DLD Building Report</h3>
+        <p>Название: <span class="font-medium">{{ building_report.dld_building }}</span></p>
+        <p>Район DLD: <span class="font-medium">{{ building_report.dld_building.area }}</span></p>
+        <p>PF-area: <span class="font-medium">{{ building_report.dld_building.area_by_pf }}</span></p>
+
+        {# ----- DLD Продажа ----- #}
+        <div>
+          <h2 class="mb-4 text-2xl font-bold">DLD Продажа</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="py-2 px-4"></th>
+                  <th class="py-2 px-4 text-center" colspan="2">Билдинг</th>
+                  <th class="py-2 px-4 text-center" colspan="2">Район</th>
+                  <th class="py-2 px-4 text-center" colspan="2">Дубай</th>
+                </tr>
+                <tr class="text-xs tracking-wider uppercase bg-gray-100">
+                  <th class="py-2 px-4 font-medium text-left">Метрика</th>
+                  <th class="py-2 px-4 font-medium">LY</th>
+                  <th class="py-2 px-4 font-medium border-r">Δ %</th>
+                  <th class="py-2 px-4 font-medium">LY</th>
+                  <th class="py-2 px-4 font-medium border-r">Δ %</th>
+                  <th class="py-2 px-4 font-medium">LY</th>
+                  <th class="py-2 px-4 font-medium">Δ %</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                {% for row in dld_sale_rows %}
+                  <tr class="{% if row.highlight %}bg-yellow-50{% else %}bg-green-50{% endif %}">
+                    <td class="py-2 px-4">{{ row.label }}</td>
+
+                    <td class="py-2 px-4 number-cell"
+                        data-value="{{ row.b_val|floatformat:'3'|default_if_none:'' }}">
+                      <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+                    <td class="py-2 px-4 border-r number-cell"
+                        data-value="{{ row.b_pct|floatformat:'1'|default_if_none:'' }}">
+                      <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+
+                    <td class="py-2 px-4 number-cell"
+                        data-value="{{ row.a_val|floatformat:'3'|default_if_none:'' }}">
+                      <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+                    <td class="py-2 px-4 border-r number-cell"
+                        data-value="{{ row.a_pct|floatformat:'1'|default_if_none:'' }}">
+                      <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+
+                    <td class="py-2 px-4 number-cell"
+                        data-value="{{ row.c_val|floatformat:'3'|default_if_none:'' }}">
+                      <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+                    <td class="py-2 px-4 number-cell"
+                        data-value="{{ row.c_pct|floatformat:'1'|default_if_none:'' }}">
+                      <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {# ----- DLD Аренда ----- #}
+        <div>
+          <h2 class="mb-4 text-2xl font-bold">DLD Аренда</h2>
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm divide-y divide-gray-200">
+              <thead class="bg-gray-50">
+                <tr>
+                  <th class="py-2 px-4"></th>
+                  <th class="py-2 px-4 text-center" colspan="2">Билдинг</th>
+                  <th class="py-2 px-4 text-center" colspan="2">Район</th>
+                  <th class="py-2 px-4 text-center" colspan="2">Дубай</th>
+                </tr>
+                <tr class="text-xs tracking-wider uppercase bg-gray-100">
+                  <th class="py-2 px-4 font-medium text-left">Метрика</th>
+                  <th class="py-2 px-4 font-medium">LY</th>
+                  <th class="py-2 px-4 font-medium border-r">Δ %</th>
+                  <th class="py-2 px-4 font-medium">LY</th>
+                  <th class="py-2 px-4 font-medium border-r">Δ %</th>
+                  <th class="py-2 px-4 font-medium">LY</th>
+                  <th class="py-2 px-4 font-medium">Δ %</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-gray-100">
+                {% for row in dld_rent_rows %}
+                  <tr class="{% if row.highlight %}bg-yellow-50{% else %}bg-green-50{% endif %}">
+                    <td class="py-2 px-4">{{ row.label }}</td>
+
+                    <td class="py-2 px-4 number-cell"
+                        data-value="{{ row.b_val|floatformat:'3'|default_if_none:'' }}">
+                      <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+                    <td class="py-2 px-4 border-r number-cell"
+                        data-value="{{ row.b_pct|floatformat:'1'|default_if_none:'' }}">
+                      <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+
+                    <td class="py-2 px-4 number-cell"
+                        data-value="{{ row.a_val|floatformat:'3'|default_if_none:'' }}">
+                      <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+                    <td class="py-2 px-4 border-r number-cell"
+                        data-value="{{ row.a_pct|floatformat:'1'|default_if_none:'' }}">
+                      <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+
+                    <td class="py-2 px-4 number-cell"
+                        data-value="{{ row.c_val|floatformat:'3'|default_if_none:'' }}">
+                      <span class="inline-block w-14 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+                    <td class="py-2 px-4 number-cell"
+                        data-value="{{ row.c_pct|floatformat:'1'|default_if_none:'' }}">
+                      <span class="inline-block w-10 h-4 bg-gray-200 rounded animate-pulse loader"></span>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    {% endif %}
+  {% endif %}
+</div>
+
+{# =================== ПРЕЛОАДЕРЫ И ФОРМАТИРО{# =================== JS: прелоадеры + формат чисел =================== #}
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  /* ───────────────── helper: разделяем 3-знаки ───────────────── */
+  const fmt = (val) => {
+    if (val === undefined || val === null || val === '') return '';
+    const str = String(val).replace(/\s+/g, '');
+    const [int, frac] = str.split('.');
+    return int.replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + (frac ? '.' + frac : '');
+  };
+
+  /* ───────────────── FAST counter (значение существует) ───────────────── */
+  // const fastCounter = (loader, cell, finalText) => {
+  //   let n = 1;
+  //   const speed = 12;                       // мс между кадрами
+  //   const startDelay = 300 + Math.random()*900;
+  //   setTimeout(() => {
+  //     const id = setInterval(() => {
+  //       loader.textContent = n;
+  //       if (n >= 100) {
+  //         clearInterval(id);
+  //         cell.textContent = finalText;
+  //       }
+  //       n = n === 100 ? 1 : n + 1;          // циклично 1–100
+  //     }, speed);
+  //   }, startDelay);
+  // };
+  //
+  // /* ───────────────── SLOW counter (значения нет) ───────────────── */
+  // const slowCounter = (loader) => {
+  //   let n = 1;
+  //   let delay = 500;                        // первая «смена» через 0.5 с
+  //   const tick = () => {
+  //     loader.textContent = n;
+  //     n = n === 100 ? 1 : n + 1;
+  //     delay += 1000;                       // каждое следующее число +1 сек
+  //     setTimeout(tick, delay);
+  //   };
+  //   tick();
+  // };
+  /* ---------- FAST counter (значение есть) ---------- */
+ const fastCounter = (loader, cell, finalText) => {
+   let n = 1;
+   const speed = 1;
+   const startDelay = 300 + Math.random()*900;
+
+   setTimeout(() => {
+     const id = setInterval(() => {
+       loader.textContent = `считаем ${n} %`;        // ★
+       if (n >= 100) {
+         clearInterval(id);
+         cell.textContent = finalText;               // показываем итог
+       }
+       n = n === 100 ? 1 : n + 1;
+     }, speed);
+   }, startDelay);
+ };
+
+ /* ---------- SLOW counter (значения нет) ---------- */
+ const slowCounter = (loader) => {
+   let n = 1;
+   let delay = 100;
+   const tick = () => {
+     loader.textContent = `loading ${n} %`;          // ★
+     n = n === 100 ? 1 : n + 1;
+     delay += 1000;
+     setTimeout(tick, delay);
+   };
+   tick();
+ };
+
+  /* ───────────────── NUMBER-cells ───────────────── */
+  document.querySelectorAll('.number-cell').forEach(cell => {
+    const valRaw = cell.dataset.value || '';
+    const loader = cell.querySelector('.loader');
+    if (!loader) return;
+
+    if (valRaw !== '') {
+      fastCounter(loader, cell, fmt(valRaw));
+    } else {
+      slowCounter(loader);
+    }
+  });
+
+  /* ───────────────── RANGE-cells ───────────────── */
+  document.querySelectorAll('.range-cell').forEach(cell => {
+    const min = cell.dataset.min || '';
+    const max = cell.dataset.max || '';
+    const loader = cell.querySelector('.loader');
+    if (!loader) return;
+
+    if (min !== '' && max !== '') {
+      fastCounter(loader, cell, `${fmt(min)} – ${fmt(max)}`);
+    } else {
+      slowCounter(loader);
+    }
+  });
+
+});
+</script>
+{% endblock content %}

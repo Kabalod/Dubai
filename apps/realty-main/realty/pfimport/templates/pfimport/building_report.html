@@ -1,0 +1,59 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <title>Building report</title>
+    <link rel="stylesheet" href="{% static 'css/bootstrap.min.css' %}"/>
+</head>
+<body class="p-4">
+<h2>Building report (period: {{ period }}, deals: sales)</h2>
+
+<form method="post" class="mb-4">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit" class="btn btn-primary">Calculate</button>
+</form>
+
+{% if result %}
+    <table class="table w-auto table-sm table-bordered">
+        <tbody>
+        <tr><th>Total buildings</th><td>{{ result.total_buildings }}</td></tr>
+        <tr><th>Total deals</th><td>{{ result.deals_value }}</td></tr>
+        <tr><th>Total properties</th><td>{{ result.total_properties }}</td></tr>
+        <tr><th>Growth, %</th><td>{{ result.growth_dynamic_percent|floatformat:2 }}</td></tr>
+
+        <tr class="table-secondary"><th colspan="2">Average price</th></tr>
+        <tr><th>value</th><td>{{ result.averagePrice_value|floatformat:2 }}</td></tr>
+        <tr><th>dynamic %</th><td>{{ result.averagePrice_dynamic|floatformat:2 }}</td></tr>
+        <tr><th>versus %</th><td>{{ result.averagePrice_versus|floatformat:2 }}</td></tr>
+
+        <tr class="table-secondary"><th colspan="2">Median price</th></tr>
+        <tr><th>value</th><td>{{ result.medianPrice_value|floatformat:2 }}</td></tr>
+        <tr><th>dynamic %</th><td>{{ result.medianPrice_dynamic|floatformat:2 }}</td></tr>
+        <tr><th>versus %</th><td>{{ result.medianPrice_versus|floatformat:2 }}</td></tr>
+
+        <tr class="table-secondary"><th colspan="2">Average price per sqm</th></tr>
+        <tr><th>value</th><td>{{ result.averagePricePerSQM_value|floatformat:2 }}</td></tr>
+        <tr><th>dynamic %</th><td>{{ result.averagePricePerSQM_dynamic|floatformat:2 }}</td></tr>
+        <tr><th>versus %</th><td>{{ result.averagePricePerSQM_versus|floatformat:2 }}</td></tr>
+
+        <tr class="table-secondary"><th colspan="2">Price range</th></tr>
+        <tr><th>range</th><td>{{ result.priceRange_range }}</td></tr>
+        <tr><th>dynamic %</th><td>{{ result.priceRange_dynamic|floatformat:2 }}</td></tr>
+        <tr><th>versus %</th><td>{{ result.priceRange_versus|floatformat:2 }}</td></tr>
+
+        <tr class="table-secondary"><th colspan="2">Deals volume</th></tr>
+        <tr><th>value</th><td>{{ result.dealsVolume_value|floatformat:2 }}</td></tr>
+        <tr><th>dynamic %</th><td>{{ result.dealsVolume_dynamic|floatformat:2 }}</td></tr>
+        <tr><th>versus %</th><td>{{ result.dealsVolume_versus|floatformat:2 }}</td></tr>
+
+        <tr class="table-secondary"><th colspan="2">Liquidity</th></tr>
+        <tr><th>value</th><td>{{ result.liquidity_value|floatformat:4 }}</td></tr>
+        <tr><th>dynamic %</th><td>{{ result.liquidity_dynamic|floatformat:2 }}</td></tr>
+        <tr><th>versus %</th><td>{{ result.liquidity_versus|floatformat:2 }}</td></tr>
+        </tbody>
+    </table>
+{% endif %}
+</body>
+</html>

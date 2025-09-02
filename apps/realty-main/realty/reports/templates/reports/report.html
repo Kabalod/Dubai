@@ -1,0 +1,59 @@
+{# realty/reports/templates/reports/report.html #}
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>Отчёт по зданию</h1>
+
+  <form method="post" class="mb-4">
+    {% csrf_token %}
+    <div>
+      <label for="building">Здание:</label>
+      <select name="building" id="building" required>
+        <option value="" disabled selected>— выберите здание —</option>
+        {% for b in buildings %}
+          <option value="{{ b.pk }}"
+            {% if selected_building and b.pk == selected_building.pk %}selected{% endif %}>
+            {{ b.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="mt-2">
+      <label for="bedrooms">Комнатность:</label>
+      <select name="bedrooms" id="bedrooms" required>
+        <option value="" disabled selected>— выберите —</option>
+        {% for key, label in bedroom_choices %}
+          <option value="{{ key }}" {% if selected_bedrooms == key %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit" class="mt-3">Получить отчёт</button>
+  </form>
+
+  {% if report %}
+    <h2>Результаты для {{ selected_building.name }}, {{ report.get_bedrooms_display }}</h2>
+    <table>
+      <tr><th colspan="2">Продажа</th></tr>
+      <tr><th>Средняя цена</th><td>{{ report.avg_sale_price|default:"—" }}</td></tr>
+      <tr><th>Медианная цена</th><td>{{ report.median_sale_price|default:"—" }}</td></tr>
+      <tr><th>Минимальная цена</th><td>{{ report.min_sale_price|default:"—" }}</td></tr>
+      <tr><th>Максимальная цена</th><td>{{ report.max_sale_price|default:"—" }}</td></tr>
+      <tr><th>Число объявлений</th><td>{{ report.sale_count }}</td></tr>
+      <tr><th>Средняя экспозиция (дней)</th><td>{{ report.avg_exposure_sale_days|default:"—" }}</td></tr>
+      <tr><th>Объявлений на единицу</th><td>{{ report.sale_per_unit_ratio|default:"—" }}</td></tr>
+
+      <tr><th colspan="2" class="pt-4">Аренда</th></tr>
+      <tr><th>Средняя цена</th><td>{{ report.avg_rent_price|default:"—" }}</td></tr>
+      <tr><th>Медианная цена</th><td>{{ report.median_rent_price|default:"—" }}</td></tr>
+      <tr><th>Минимальная цена</th><td>{{ report.min_rent_price|default:"—" }}</td></tr>
+      <tr><th>Максимальная цена</th><td>{{ report.max_rent_price|default:"—" }}</td></tr>
+      <tr><th>Число объявлений</th><td>{{ report.rent_count }}</td></tr>
+      <tr><th>Средняя экспозиция (дней)</th><td>{{ report.avg_exposure_rent_days|default:"—" }}</td></tr>
+      <tr><th>Объявлений на единицу</th><td>{{ report.rent_per_unit_ratio|default:"—" }}</td></tr>
+
+      <tr><th class="pt-4">ROI (аренда/продажа)</th><td>{{ report.roi|default:"—" }}</td></tr>
+    </table>
+  {% endif %}
+{% endblock content %}

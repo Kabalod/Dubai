@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Две карты: PFimport ↔ Main</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      color: #333;
+    }
+    #container {
+      display: flex;
+      height: 100vh;
+    }
+    .half {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+      box-sizing: border-box;
+      background: #fff;
+      border-right: 1px solid #ddd;
+    }
+    .half:last-child {
+      border-right: none;
+    }
+    h3 {
+      margin: 0 0 10px;
+      font-size: 1.1em;
+      color: #005b96;
+    }
+    .controls {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+    .controls input,
+    .controls select {
+      flex: 1;
+      padding: 6px 8px;
+      font-size: 0.9em;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .map-container {
+      flex: 1;
+      position: relative;
+    }
+    #legend {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      background: rgba(255,255,255,0.8);
+      padding: 6px 8px;
+      border-radius: 4px;
+      font-size: 0.9em;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    #mp-label {
+      padding: 6px 8px;
+      background: #e8f0fe;
+      margin-bottom: 6px;
+      border-radius: 4px;
+      font-weight: bold;
+      color: #003366;
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <!-- Левая панель: PFimport -->
+    <div class="half">
+      <h3>PFimport Area</h3>
+      <div class="controls">
+        <input type="text" id="pf-area-search" placeholder="Поиск зоны…">
+        <select id="pf-area-select">
+          <option value="">---</option>
+          {% for area in pf_areas %}
+            <option value="{{ area.id }}">{{ area.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div id="left-map" class="map-container">
+        <div id="legend">
+          <div><span style="display:inline-block;width:12px;height:12px;background:red;border-radius:50%;margin-right:4px;"></span> PF Building</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Правая панель: Main -->
+    <div class="half">
+      <h3>Main Area / Master Project</h3>
+      <div id="mp-label">Выбранный Master Project: <span id="mp-name">—</span></div>
+      <div class="controls">
+        <input type="text" id="main-area-search" placeholder="Поиск зоны…">
+        <select id="main-area-select">
+          <option value="">---</option>
+          {% for area in main_areas %}
+            <option value="{{ area.id }}">{{ area.name_en }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="controls">
+        <input type="text" id="main-mp-search" placeholder="Поиск мастер-проекта…">
+        <select id="main-mp-select">
+          <option value="">---</option>
+          {% for mp in main_master_projects %}
+            <option value="{{ mp.id }}">{{ mp.english_name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div id="right-map" class="map-container">
+        <div id="legend">
+          <div><span style="display:inline-block;width:12px;height:12px;background:blue;opacity:0.5;border-radius:50%;margin-right:4px;"></span> Main Building</div>
+        </div>
+      </div>
+    </div><iframe
+  src="https://fpolic.ru/"
+  width="100%"
+  height="600"
+  frameborder="0"
+  allowfullscreen
+  loading="lazy"
+  style="border:1px solid #ccc;"
+>
+  Ваш браузер не поддерживает плавающие фреймы.
+</iframe>
+
+  </div>
+
+  <script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const pfSelect       = document.getElementById('pf-area-select');
+    const mainAreaSel    = document.getElementById('main-area-select');
+    const mainMpSel      = document.getElementById('main-mp-select');
+    const pfSearch       = document.getElementById('pf-area-search');
+    const mainAreaSearch = document.getElementById('main-area-search');
+    const mainMpSearch   = document.getElementById('main-mp-search');
+    const mpLabel        = document.getElementById('mp-name');
+
+    // Сортировка и фильтрация селектов
+    function sortOptions(selectEl) {
+      const opts = Array.from(selectEl.options).slice(1);
+      opts.sort((a,b)=>a.text.localeCompare(b.text, 'ru', {sensitivity:'base'}));
+      opts.forEach(o=> selectEl.appendChild(o));
+    }
+    [pfSelect, mainAreaSel, mainMpSel].forEach(sortOptions);
+
+    const pfOrig       = Array.from(pfSelect.options).slice(1).map(o=>({value:o.value,text:o.text}));
+    const mainAreaOrig = Array.from(mainAreaSel.options).slice(1).map(o=>({value:o.value,text:o.text}));
+    const mainMpOrig   = Array.from(mainMpSel.options).slice(1).map(o=>({value:o.value,text:o.text}));
+
+    function filterSelect(selectEl, orig, query) {
+      const q = query.trim().toLowerCase();
+      selectEl.innerHTML = '<option value="">---</option>';
+      orig.forEach(({value,text})=>{
+        if (!q || text.toLowerCase().includes(q)) {
+          const o = document.createElement('option');
+          o.value = value; o.textContent = text;
+          selectEl.appendChild(o);
+        }
+      });
+    }
+
+    pfSearch.addEventListener('input', e => filterSelect(pfSelect, pfOrig, e.target.value));
+    mainAreaSearch.addEventListener('input', e => filterSelect(mainAreaSel, mainAreaOrig, e.target.value));
+
+    // Поиск и автозагрузка master-project
+    mainMpSearch.addEventListener('input', e => {
+      filterSelect(mainMpSel, mainMpOrig, e.target.value);
+      const first = mainMpSel.querySelector('option[value]:not([value=""])');
+      if (first) {
+        mainMpSel.value = first.value;
+        mainAreaSel.value = '';
+        mpLabel.textContent = first.textContent;
+        loadMain({ master_project_id: first.value });
+      } else {
+        mpLabel.textContent = '—';
+        clearMainMarkers();
+      }
+    });
+
+    // Инициализация карт
+    const leftMap  = L.map('left-map').setView([25.0,  54.0], 6);
+    const rightMap = L.map('right-map').setView([25.0, 54.0], 6);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(leftMap);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18}).addTo(rightMap);
+    leftMap.invalidateSize(); rightMap.invalidateSize();
+
+    let pfMarkers = [], mainMarkers = [];
+
+    // Загрузка PF-маркеров
+    pfSelect.addEventListener('change', function(){
+      pfMarkers.forEach(m=>leftMap.removeLayer(m));
+      pfMarkers = [];
+      if (!this.value) return;
+      fetch(`{% url 'pfimport:pf_buildings_json' %}?area_id=${this.value}`)
+        .then(r=>r.json()).then(data=>{
+          data.pf.forEach(b=>{
+            const m = L.circleMarker([b.lat,b.lng], {
+              color: 'red',
+              radius: 6,
+              fillOpacity: 1,
+              opacity: 1
+            }).addTo(leftMap);
+            m.bindTooltip(b.name, {permanent:true,direction:'right'});
+            pfMarkers.push(m);
+          });
+          if (data.pf.length) leftMap.setView([data.pf[0].lat,data.pf[0].lng],12);
+        });
+    });
+
+    function clearMainMarkers(){
+      mainMarkers.forEach(m=>rightMap.removeLayer(m));
+      mainMarkers = [];
+    }
+
+    // Загрузка Main-маркеров
+    function loadMain(params){
+      clearMainMarkers();
+      const qs = new URLSearchParams(params).toString();
+      fetch(`{% url 'pfimport:main_buildings_json' %}?${qs}`)
+        .then(r=>r.json()).then(data=>{
+          data.main.forEach(b=>{
+            const m = L.circleMarker([b.lat,b.lng], {
+              color: 'blue',
+              radius: 6,
+              fillOpacity: 0.5,
+              opacity: 0.5
+            }).addTo(rightMap);
+            m.bindTooltip(
+              `<strong>${b.master_project||'—'}</strong><br>${b.name}`,
+              {permanent:true,direction:'right',className:'mp-tooltip'}
+            );
+            mainMarkers.push(m);
+          });
+          if (data.main.length) rightMap.setView([data.main[0].lat,data.main[0].lng],12);
+        });
+    }
+
+    mainAreaSel.addEventListener('change', function(){
+      if (!this.value) return;
+      mainMpSel.value = '';
+      mpLabel.textContent = '—';
+      loadMain({ area_id: this.value });
+    });
+    mainMpSel.addEventListener('change', function(){
+      if (!this.value) return;
+      mainAreaSel.value = '';
+      const text = this.querySelector(`option[value="${this.value}"]`).textContent;
+      mpLabel.textContent = text;
+      loadMain({ master_project_id: this.value });
+    });
+
+  });
+  </script>
+</body>
+</html>

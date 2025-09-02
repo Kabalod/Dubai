@@ -1,0 +1,274 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2025-02-08 19:28+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: de\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#. js-lingui-explicit-id
+#: src/components/autocomplete/autocomplete.tsx:71
+#~ msgid "autocomplete.placeholder"
+#~ msgstr ""
+
+#. js-lingui-explicit-id
+#: src/pages/Dashboard.tsx:34
+#~ msgid "test.id2"
+#~ msgstr "просто текст на немецкой (типа)"
+
+#. js-lingui-explicit-id
+#: src/pages/Dashboard.tsx:31
+#~ msgid "test.id"
+#~ msgstr "Deutcschalnd user cabinet"
+
+#: src/pages/auth/SignUpForm.tsx:192
+msgid "and I consent to the processing of"
+msgstr "und ich stimme der Verarbeitung zu"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:18
+msgid "All"
+msgstr "Alle"
+
+#: src/components/header/Header.tsx:19
+#~ msgid "Analytics"
+#~ msgstr "Analytik"
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:27
+msgid "Analyze all real transaction data obtained from Dubai Land Department."
+msgstr "Analysieren Sie alle echten Transaktionsdaten, die vom Dubai Land Department erhalten wurden."
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:41
+msgid "Analyze data received from real estate sales marketplaces."
+msgstr "Analysieren Sie Daten, die von Immobilienverkaufsplattformen erhalten wurden."
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:22
+msgid "Apartments"
+msgstr "Wohnungen"
+
+#: src/pages/Dashboard.tsx:211
+#: src/components/Dashboard/Dashboard.tsx:137
+msgid "APARTMENTS"
+msgstr "WOHNUNGEN"
+
+#: src/components/autocomplete/AutocompleteBuilding.tsx:77
+#~ msgid "autocomplete.building.placeholder"
+#~ msgstr "Suche nach Bereich, Projekt oder Gebäude"
+
+#: src/pages/Dashboard.tsx:204
+#: src/components/Dashboard/Dashboard.tsx:130
+msgid "BUILDINGS"
+msgstr "GEBÄUDE"
+
+#: src/pages/auth/LoginForm.tsx:306
+msgid "CHANGE PASSWORD"
+msgstr "PASSWORT ÄNDERN"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:34
+msgid "Commercial"
+msgstr "Gewerblich"
+
+#: src/pages/auth/SignUpForm.tsx:231
+msgid "CONFIRM"
+msgstr "BESTÄTIGEN"
+
+#: src/pages/auth/SignUpForm.tsx:338
+msgid "CREATE ACCOUNT"
+msgstr "KONTO ERSTELLEN"
+
+#: src/pages/Dashboard.tsx:218
+#: src/components/Dashboard/Dashboard.tsx:144
+msgid "DEALS"
+msgstr "GESCHÄFTE"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:84
+msgid "Developer"
+msgstr "Entwickler"
+
+#. js-lingui-explicit-id
+#: src/components/autocomplete/AutocompleteDeveloper.tsx:77
+msgid "autocomplete.developer.placeholder"
+msgstr "Entwickler"
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:23
+msgid "DLD"
+msgstr "DLD"
+
+#: src/pages/auth/SignUpForm.tsx:151
+msgid "Enter an email to get started"
+msgstr "Geben Sie eine E-Mail ein, um zu beginnen"
+
+#: src/pages/auth/SignUpForm.tsx:206
+msgid "Enter the code to complete the registration"
+msgstr "Geben Sie den Code ein, um die Registrierung abzuschließen"
+
+#: src/pages/auth/LoginForm.tsx:192
+msgid "Forgot your password?"
+msgstr "Passwort vergessen?"
+
+#: src/pages/auth/SignUpForm.tsx:178
+#~ msgid "I have read the <0>policy agreement</0> and I consent to the processing of personal data"
+#~ msgstr "Ich habe die <0>Richtlinienvereinbarung</0> gelesen und stimme der Verarbeitung personenbezogener Daten zu"
+
+#: src/pages/auth/SignUpForm.tsx:188
+msgid "I have read the "
+msgstr "Ich habe gelesen "
+
+#: src/pages/auth/SignUpForm.tsx:148
+msgid "Join us for free!"
+msgstr "Schließen Sie sich uns kostenlos an!"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:30
+msgid "Land"
+msgstr ""
+
+#: src/pages/auth/LoginForm.tsx:184
+#: src/pages/auth/LoginForm.tsx:358
+msgid "LOG IN"
+msgstr "ANMELDEN"
+
+#: src/pages/auth/LoginForm.tsx:144
+msgid "Log in to your account"
+msgstr "Melden Sie sich in Ihrem Konto an"
+
+#: src/components/header/Header.tsx:17
+#~ msgid "Main"
+#~ msgstr "Hauptseite"
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:37
+msgid "Marketplace"
+msgstr "Marktplatz"
+
+#: src/pages/auth/LoginForm.tsx:224
+msgid "NEXT"
+msgstr "WEITER"
+
+#: src/pages/auth/LoginForm.tsx:318
+msgid "Now you can log in using a new password"
+msgstr "Jetzt können Sie sich mit einem neuen Passwort anmelden"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:173
+msgid "OTHER"
+msgstr "ANDERE"
+
+#: src/pages/Dashboard.tsx:196
+#: src/components/Dashboard/Dashboard.tsx:122
+msgid "Overview"
+msgstr "Übersicht"
+
+#: src/pages/auth/LoginForm.tsx:315
+msgid "Password has been successfully updated"
+msgstr "Das Passwort wurde erfolgreich aktualisiert"
+
+#: src/pages/auth/LoginForm.tsx:201
+msgid "Password Recovery"
+msgstr "Passwort-Wiederherstellung"
+
+#: src/pages/auth/LoginForm.tsx:264
+msgid "Password reset"
+msgstr "Passwort zurücksetzen"
+
+#: src/components/header/Header.tsx:21
+#~ msgid "Payments"
+#~ msgstr "Zahlungen"
+
+#: src/pages/auth/SignUpForm.tsx:193
+msgid "personal data"
+msgstr "personenbezogene Daten"
+
+#: src/pages/auth/SignUpForm.tsx:190
+msgid "policy agreement"
+msgstr "Richtlinienvereinbarung"
+
+#: src/pages/auth/SignUpForm.tsx:191
+msgid " and I consent to the processing of "
+msgstr " und ich stimme der Verarbeitung zu "
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:90
+msgid "PRICE, AED"
+msgstr "PREIS, AED"
+
+#: src/pages/Dashboard.tsx:213
+#: src/components/Dashboard/Dashboard.tsx:140
+#~ msgid "Reports"
+#~ msgstr "Berichte"
+
+#: src/pages/auth/LoginForm.tsx:245
+msgid "RESEND"
+msgstr "ERNEUT SENDEN"
+
+#. js-lingui-explicit-id
+#: src/components/MainFilters/MainFilters.tsx:136
+msgid "filters.search"
+msgstr ""
+
+#: src/components/autocomplete/autocomplete.tsx:71
+#~ msgid "SEARCH"
+#~ msgstr "SUCHEN"
+
+#. js-lingui-explicit-id
+#: src/components/autocomplete/AutocompleteBuilding.tsx:79
+msgid "autocomplete.building.placeholder"
+msgstr ""
+
+#: src/components/autocomplete/autocomplete.tsx:71
+#~ msgid "Search by area, project or building"
+#~ msgstr "Suche nach Bereich, Projekt oder Gebäude"
+
+#: src/pages/auth/SignUpForm.tsx:239
+msgid "Send the code again"
+msgstr "Code erneut senden"
+
+#: src/pages/auth/SignUpForm.tsx:181
+msgid "SIGN UP"
+msgstr "REGISTRIEREN"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:111
+msgid "SIZE M"
+msgstr ""
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:30
+#~ msgid "SIZE M²"
+#~ msgstr "GRÖSSE M²"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:134
+msgid "SOLD BY"
+msgstr "VERKAUFT VON"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:153
+msgid "STATUS"
+msgstr "STATUS"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:26
+msgid "Villas"
+msgstr "Villen"
+
+#: src/pages/auth/SignUpForm.tsx:188
+#~ msgid "We have sent email to "
+#~ msgstr "Wir haben eine E-Mail an gesendet "
+
+#: src/pages/auth/LoginForm.tsx:234
+msgid "We have sent email to {email}"
+msgstr ""
+
+#: src/pages/auth/SignUpForm.tsx:188
+#~ msgid "We have sent the code to "
+#~ msgstr "Wir haben den Code an gesendet "
+
+#: src/pages/auth/SignUpForm.tsx:203
+msgid "We have sent the code to {email}"
+msgstr ""
+
+#: src/pages/auth/SignUpForm.tsx:248
+msgid "Welcome!"
+msgstr "Willkommen!"
+
+#: src/pages/auth/LoginForm.tsx:253
+msgid "You can resend the email after"
+msgstr "Sie können die E-Mail nach erneut senden"

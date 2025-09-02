@@ -1,0 +1,16 @@
+.customInput {
+  :global(.ant-input) {
+    border-radius: var(--radius-md);
+  }
+
+  &.default :global(.ant-input) {
+    background: #fff;
+  }
+
+  &.ghost :global(.ant-input) {
+    background: transparent;
+    border-color: transparent;
+  }
+}
+
+

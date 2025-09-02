@@ -1,0 +1,106 @@
+// Консистентная система spacing для Dubai MVP
+// Базируется на шкале 8px (0.5rem)
+
+// Base unit
+$spacing-unit: 0.5rem; // 8px
+
+// Spacing scale
+$spacing-xs: #{$spacing-unit * 0.5}; // 4px
+$spacing-sm: #{$spacing-unit * 1};   // 8px  
+$spacing-md: #{$spacing-unit * 2};   // 16px
+$spacing-lg: #{$spacing-unit * 3};   // 24px
+$spacing-xl: #{$spacing-unit * 4};   // 32px
+$spacing-2xl: #{$spacing-unit * 6};  // 48px
+$spacing-3xl: #{$spacing-unit * 8};  // 64px
+
+// Component specific spacing
+$card-padding: $spacing-lg;          // 24px
+$section-margin: $spacing-xl;        // 32px
+$element-gap: $spacing-md;           // 16px
+$button-padding: $spacing-sm $spacing-md; // 8px 16px
+
+// Grid system
+$container-padding: $spacing-lg;     // 24px
+$grid-gap: $spacing-md;             // 16px
+$row-gap: $spacing-md;              // 16px
+
+// Utility classes
+@mixin apply-spacing-utilities {
+  // Margin utilities
+  .m-0 { margin: 0 !important; }
+  .m-xs { margin: $spacing-xs !important; }
+  .m-sm { margin: $spacing-sm !important; }
+  .m-md { margin: $spacing-md !important; }
+  .m-lg { margin: $spacing-lg !important; }
+  .m-xl { margin: $spacing-xl !important; }
+  
+  // Padding utilities
+  .p-0 { padding: 0 !important; }
+  .p-xs { padding: $spacing-xs !important; }
+  .p-sm { padding: $spacing-sm !important; }
+  .p-md { padding: $spacing-md !important; }
+  .p-lg { padding: $spacing-lg !important; }
+  .p-xl { padding: $spacing-xl !important; }
+  
+  // Gap utilities
+  .gap-0 { gap: 0 !important; }
+  .gap-xs { gap: $spacing-xs !important; }
+  .gap-sm { gap: $spacing-sm !important; }
+  .gap-md { gap: $spacing-md !important; }
+  .gap-lg { gap: $spacing-lg !important; }
+  .gap-xl { gap: $spacing-xl !important; }
+}
+
+// Layout mixins
+@mixin card-spacing {
+  padding: $card-padding;
+  margin-bottom: $element-gap;
+}
+
+@mixin section-spacing {
+  margin: $section-margin 0;
+  
+  &:first-child {
+    margin-top: 0;
+  }
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+@mixin flex-spacing($gap: $element-gap) {
+  display: flex;
+  gap: $gap;
+}
+
+@mixin grid-spacing($columns: 1, $gap: $grid-gap) {
+  display: grid;
+  grid-template-columns: repeat($columns, 1fr);
+  gap: $gap;
+}
+
+// Responsive spacing
+@mixin responsive-padding {
+  padding: $spacing-md;
+  
+  @media (min-width: 768px) {
+    padding: $spacing-lg;
+  }
+  
+  @media (min-width: 1024px) {
+    padding: $spacing-xl;
+  }
+}
+
+@mixin responsive-margin {
+  margin: $spacing-md 0;
+  
+  @media (min-width: 768px) {
+    margin: $spacing-lg 0;
+  }
+  
+  @media (min-width: 1024px) {
+    margin: $spacing-xl 0;
+  }
+}

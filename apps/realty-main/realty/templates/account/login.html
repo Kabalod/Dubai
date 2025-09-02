@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load account allauth i18n %}
+{% block head_title %}
+    {% translate "Sign In" %}
+{% endblock head_title %}
+
+{% block content %}
+    <script src="//accounts.google.com/gsi/client" async></script>
+    <div id="g_id_onload"
+         data-client_id="123-secret.apps.googleusercontent.com"
+         data-login_uri="{% url 'google_login_by_token' %}"></div>
+    <h1 class="mb-6 text-3xl font-bold text-center text-blue-400">{% translate "Sign In" %}</h1>
+    {% if not SOCIALACCOUNT_ONLY %}
+        <p class="mb-4 text-center text-gray-300">
+            {% blocktranslate %}If you have not created an account yet, then please <a href="{{ signup_url }}" class="text-blue-400 underline hover:text-blue-300">sign up</a> first.{% endblocktranslate %}
+        </p>
+        <form method="post"
+              action="{% url 'account_login' %}"
+              class="p-8 mx-auto space-y-8 max-w-md bg-gray-800 rounded-xl border border-gray-700 shadow-lg">
+            {% csrf_token %}
+            {% for field in form.visible_fields %}
+                <div class="flex flex-col gap-1 mb-6">
+                    <label for="{{ field.id_for_label }}" class="font-medium text-gray-300">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<p class="mt-4 text-xs text-gray-400">{{ field.help_text }}</p>{% endif %}
+                    {% for error in field.errors %}<p class="text-xs text-red-400">{{ error }}</p>{% endfor %}
+                </div>
+            {% endfor %}
+            {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+            {{ redirect_field }}
+            <div class="mt-10">
+                <button type="submit"
+                        class="py-2 px-4 w-full font-semibold text-white bg-blue-500 rounded-lg transition hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+                    {% translate "Sign In" %}
+                </button>
+            </div>
+        </form>
+    {% endif %}
+    {% if LOGIN_BY_CODE_ENABLED or PASSKEY_LOGIN_ENABLED %}
+        <hr class="my-8 border-gray-700">
+        <div class="flex flex-col gap-2 mx-auto w-full max-w-md">
+            {% if PASSKEY_LOGIN_ENABLED %}
+                <button type="submit"
+                        form="mfa_login"
+                        id="passkey_login"
+                        class="py-2 px-4 w-full font-semibold text-blue-400 bg-transparent rounded-lg border border-blue-500 transition hover:bg-blue-900">
+                    {% translate "Sign in with a passkey" %}
+                </button>
+            {% endif %}
+            {% if LOGIN_BY_CODE_ENABLED %}
+                <a href="{{ request_login_code_url }}"
+                   class="py-2 px-4 w-full font-semibold text-center text-blue-400 bg-transparent rounded-lg border border-blue-500 transition hover:bg-blue-900">{% translate "Send me a sign-in code" %}</a>
+            {% endif %}
+        </div>
+    {% endif %}
+    {% if SOCIALACCOUNT_ENABLED %}
+        {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
+    {% endif %}
+{% endblock content %}
+
+{% block extra_body %}
+    {{ block.super }}
+    {% if PASSKEY_LOGIN_ENABLED %}
+        {% include "mfa/webauthn/snippets/login_script.html" with button_id="passkey_login" %}
+    {% endif %}
+{% endblock extra_body %}

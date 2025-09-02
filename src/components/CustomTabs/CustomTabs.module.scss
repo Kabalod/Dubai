@@ -1,0 +1,31 @@
+.customTabs {
+  &.default {
+    :global(.ant-tabs-nav) {
+      margin: 0 0 16px 0;
+    }
+    :global(.ant-tabs-tab) {
+      border-radius: var(--radius-md);
+    }
+    :global(.ant-tabs-tab-active .ant-tabs-tab-btn) {
+      font-weight: 600;
+    }
+  }
+
+  &.segmented {
+    :global(.ant-tabs-nav) {
+      padding: 4px;
+      border-radius: var(--radius-lg);
+      background: rgba(0,0,0,0.04);
+    }
+    :global(.ant-tabs-tab) {
+      border-radius: var(--radius-md);
+      margin: 0 4px;
+    }
+    :global(.ant-tabs-tab-active) {
+      background: #fff;
+      box-shadow: var(--shadow-card);
+    }
+  }
+}
+
+

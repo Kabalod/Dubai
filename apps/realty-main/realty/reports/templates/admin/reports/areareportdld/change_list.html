@@ -1,0 +1,10 @@
+{% extends "admin/change_list.html" %}
+
+{% block object-tools %}
+  {{ block.super }}
+  <li>
+    <a href="{% url 'admin:areareport_recalculate_all_dld' %}" class="addlink">
+      Пересчитать все отчёты по районам
+    </a>
+  </li>
+{% endblock object-tools %}

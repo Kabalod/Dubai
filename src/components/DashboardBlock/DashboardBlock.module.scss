@@ -1,0 +1,68 @@
+@use "@/styles/typography" as *;
+@use "@/styles/tokens" as *;
+@use "@/styles/spacing" as *;
+
+.container {
+    border-radius: var(--radius-xl);
+    background-color: $bgColorGrey;
+}
+
+.title {
+    @include title4medium;
+    color: $textColorPrimary;
+}
+
+.mosaic {
+    @include grid-spacing(1, $spacing-md);
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.card {
+    border-radius: var(--radius-md);
+    padding: $spacing-md;
+    background: $bgColorWhite;
+    box-shadow: var(--shadow-card);
+    min-width: 260px;
+    max-width: 360px;
+
+    & :global(.ant-card-body) {
+        padding: 0 !important;
+    }
+}
+
+.substring {
+    @include body2regular;
+    color: $textColorSecondary;
+    display: flex;
+    justify-content: space-between;
+}
+
+.chevron {
+    width: 24px;
+    height: 24px;
+}
+
+.iconInfo {
+    height: 16px;
+    width: 16px;
+}
+
+.cardTitle {
+    @include body2regular;
+    color: $textColorSecondary;
+}
+
+.value {
+    @include title4medium;
+    color: $textColorPrimary;
+    line-height: 1.2;
+}
+
+.currency {
+    @include body2regular;
+    color: $textColorSecondary;
+}
+.cardRightSide {
+    display: flex;
+    justify-content: end;
+}

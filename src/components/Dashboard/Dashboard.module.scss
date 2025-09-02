@@ -1,0 +1,88 @@
+@use "@/styles/typography" as *;
+@use "@/styles/tokens" as *;
+@use "@/styles/spacing" as *;
+
+.container {
+    width: 100%;
+    margin: $spacing-2xl 0;
+    @include responsive-margin;
+}
+
+/* Header section: Overview title & summary stats */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: $spacing-xl;
+}
+
+.title {
+    @include title2semibold;
+    color: $textColorPrimary;
+    margin-bottom: 0;
+}
+
+.statLabel {
+    @include body2regular;
+    color: $textColorPrimary;
+    display: flex;
+    align-items: center;
+}
+
+.statValue {
+    @include title2semibold;
+    color: $textColorPrimary;
+}
+
+.stats {
+    @include flex-spacing($spacing-lg);
+    font-size: 16px;
+    font-weight: 500;
+    color: #6b7280;
+}
+
+.stats span strong {
+    font-size: 20px;
+    font-weight: bold;
+    color: #000;
+}
+
+/* Section Headers (Price, Market Volume, etc.) */
+.sectionTitle {
+    font-size: 18px;
+    font-weight: 600;
+    color: #000;
+    margin-bottom: $spacing-sm;
+}
+
+/* Card Styling */
+.card {
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.green {
+    color: #28a745;
+    font-weight: bold;
+}
+
+.red {
+    color: #f50f00;
+    font-weight: bold;
+}
+
+/* Statistic Styling */
+.ant-statistic-title {
+    font-size: 14px;
+    color: #6b7280;
+}
+
+.ant-statistic-content {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.dashRow {
+    margin-bottom: 48px;
+}

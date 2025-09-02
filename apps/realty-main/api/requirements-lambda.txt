@@ -1,0 +1,6 @@
+Django==5.1.7
+environs[django]
+djangorestframework
+djangorestframework-simplejwt
+django-allauth[socialaccount]
+granian

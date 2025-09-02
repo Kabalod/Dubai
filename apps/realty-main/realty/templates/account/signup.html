@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load allauth i18n %}
+{% block head_title %}
+    {% translate "Signup" %}
+{% endblock head_title %}
+
+{% block content %}
+    <h1 class="mb-6 text-3xl font-bold text-center text-blue-400">{% translate "Sign Up" %}</h1>
+    <p class="mb-4 text-center text-gray-300">
+        {% blocktranslate %}Already have an account? Then please <a href="{{ login_url }}" class="text-blue-400 underline hover:text-blue-300">sign in</a>.{% endblocktranslate %}
+    </p>
+    {% if not SOCIALACCOUNT_ONLY %}
+        <form method="post"
+              action="{% url 'account_signup' %}"
+              class="p-8 mx-auto space-y-8 max-w-md bg-gray-800 rounded-xl border border-gray-700 shadow-lg">
+            {% csrf_token %}
+            {% for field in form.visible_fields %}
+                <div class="flex flex-col gap-1 mb-6">
+                    <label for="{{ field.id_for_label }}" class="font-medium text-gray-300">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<p class="text-xs text-gray-400">{{ field.help_text }}</p>{% endif %}
+                    {% for error in field.errors %}<p class="text-xs text-red-400">{{ error }}</p>{% endfor %}
+                </div>
+            {% endfor %}
+            {% for field in form.hidden_fields %}{{ field }}{% endfor %}
+            {{ redirect_field }}
+            <div class="mt-10">
+                <button type="submit"
+                        class="py-2 px-4 w-full font-semibold text-white bg-blue-500 rounded-lg transition hover:bg-blue-600 focus:ring-2 focus:ring-blue-400 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed">
+                    {% translate "Sign Up" %}
+                </button>
+            </div>
+        </form>
+    {% endif %}
+    {% if PASSKEY_SIGNUP_ENABLED %}
+        <hr class="my-8 border-gray-700">
+        <button onclick="window.location.href='{{ signup_by_passkey_url }}'"
+                class="py-2 px-4 mt-2 w-full font-semibold text-blue-400 bg-transparent rounded-lg border border-blue-500 transition hover:bg-blue-900">
+            {% translate "Sign up using a passkey" %}
+        </button>
+    {% endif %}
+    {% if SOCIALACCOUNT_ENABLED %}
+        {% include "socialaccount/snippets/login.html" with page_layout="entrance" %}
+    {% endif %}
+{% endblock content %}

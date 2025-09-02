@@ -1,0 +1,94 @@
+name: Prod Smoke and Logs
+
+on:
+  push:
+    branches: [ "prod" ]
+  workflow_dispatch:
+
+jobs:
+  prod-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      FRONTEND_URL: https://frontend-production-5c48.up.railway.app
+      API_URL: https://workerproject-production.up.railway.app/api
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Print targets
+        run: |
+          echo "FRONTEND_URL=$FRONTEND_URL"
+          echo "API_URL=$API_URL"
+
+      - name: Backend health
+        id: health
+        run: |
+          set -e
+          curl -sS -i "$API_URL/health/" | tee health.txt
+          echo "request_id=$(grep -i '^X-Railway-Request-Id:' -m 1 health.txt | awk '{print $2}' | tr -d '\r')" >> $GITHUB_OUTPUT
+
+      - name: Properties (mock)
+        id: properties
+        run: |
+          curl -sS -i "$API_URL/properties/" | tee properties.txt || true
+          echo "request_id=$(grep -i '^X-Railway-Request-Id:' -m 1 properties.txt | awk '{print $2}' | tr -d '\r')" >> $GITHUB_OUTPUT
+
+      - name: Areas (should be 200 with mock)
+        id: areas
+        run: |
+          curl -sS -i "$API_URL/areas/" | tee areas.txt || true
+          echo "request_id=$(grep -i '^X-Railway-Request-Id:' -m 1 areas.txt | awk '{print $2}' | tr -d '\r')" >> $GITHUB_OUTPUT
+
+      - name: Analytics alias
+        id: analytics
+        run: |
+          curl -sS -i "$API_URL/analytics/" | tee analytics.txt || true
+          echo "request_id=$(grep -i '^X-Railway-Request-Id:' -m 1 analytics.txt | awk '{print $2}' | tr -d '\r')" >> $GITHUB_OUTPUT
+
+      - name: OTP send (soft)
+        id: otp
+        run: |
+          curl -sS -i -X POST "$API_URL/auth/send-otp/" -H 'Content-Type: application/json' \
+            --data '{"email":"test@example.com"}' | tee otp.txt || true
+          echo "request_id=$(grep -i '^X-Railway-Request-Id:' -m 1 otp.txt | awk '{print $2}' | tr -d '\r')" >> $GITHUB_OUTPUT
+
+      - name: Attach artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: prod-smoke-responses
+          path: |
+            health.txt
+            properties.txt
+            areas.txt
+            analytics.txt
+            otp.txt
+
+      - name: Railway logs (optional)
+        if: ${{ secrets.RAILWAY_TOKEN != '' }}
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_PROJECT_ID: ${{ secrets.RAILWAY_PROJECT_ID }}
+        run: |
+          npm -g i @railway/cli@latest
+          echo "Health RequestId: ${{ steps.health.outputs.request_id }}"
+          echo "Areas  RequestId: ${{ steps.areas.outputs.request_id }}"
+          echo "Analyt RequestId: ${{ steps.analytics.outputs.request_id }}"
+          echo "OTP    RequestId: ${{ steps.otp.outputs.request_id }}"
+          # Выводим последние логи сервиса (если переменные заданы)
+          railway logs --project $RAILWAY_PROJECT_ID --tail 200 || true
+
+      - name: Summary
+        run: |
+          echo "### Smoke results" >> $GITHUB_STEP_SUMMARY
+          echo "- Health request id: ${{ steps.health.outputs.request_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Areas  request id: ${{ steps.areas.outputs.request_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- Analytics request id: ${{ steps.analytics.outputs.request_id }}" >> $GITHUB_STEP_SUMMARY
+          echo "- OTP request id: ${{ steps.otp.outputs.request_id }}" >> $GITHUB_STEP_SUMMARY
+
+

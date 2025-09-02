@@ -1,0 +1,52 @@
+// глобальные tokens/typography уже подключены через global.scss
+
+.customBtn {
+  border-radius: var(--radius-md);
+  box-shadow: none;
+  /* семантика шрифта берётся из глобальной типографики */
+
+  &.ant-btn {
+    height: 36px;
+    padding: 0 12px;
+  }
+}
+
+.btn_primary {
+  /* rely on antd primary, override radius */
+}
+
+.btn_secondary {
+  background: #f5f6f7;
+  color: #1f2937;
+  border-color: var(--color-border);
+}
+
+.btn_outline {
+  background: transparent;
+  border-color: var(--color-border);
+  color: #1f2937;
+}
+
+.btn_icon {
+  padding: 0 8px;
+}
+
+.btn_link {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  color: var(--color-primary);
+  padding: 0;
+
+  &.ant-btn {
+    height: auto;
+  }
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+
+
+

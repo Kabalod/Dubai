@@ -1,0 +1,18 @@
+@use "@/styles/typography" as *;
+@use "@/styles/tokens" as *;
+
+.container {
+    flex-grow: 2;
+    height: 48px;
+    border-radius: 24px;
+
+    & :global(.ant-select-selector) {
+        border-radius: 24px;
+        background-color: $bgColorGrey !important;
+        padding: 0 16px !important;
+
+        & input {
+            @include body1regular;
+        }
+    }
+}

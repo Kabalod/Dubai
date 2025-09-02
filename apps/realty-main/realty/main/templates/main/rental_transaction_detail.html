@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block head_title %}
+    Rental Transaction Detail
+{% endblock head_title %}
+
+{% block content %}
+    <div class="container p-8 mx-auto mt-8 max-w-3xl bg-gray-800 rounded-xl shadow-lg">
+        <a href="javascript:history.back()"
+           class="inline-block mb-4 text-blue-400 hover:underline">← Back</a>
+        <h1 class="mb-6 text-2xl font-bold">Rental Transaction #{{ transaction.id }}</h1>
+        <div class="space-y-4">
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Transaction Type:</span><span>{{ transaction.transaction_type }}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Building:</span><span>
+                    {% if transaction.building %}
+                        {{ transaction.building }} (ID {{ transaction.building_id }})
+                    {% else %}
+                        –
+                    {% endif %}
+                </span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Project:</span><span>
+                    {% if transaction.project %}
+                        {{ transaction.project }} (ID {{ transaction.project_id }})
+                    {% else %}
+                        –
+                    {% endif %}
+                </span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Area:</span><span>
+                    {% if transaction.area %}
+                        {{ transaction.area }} (ID {{ transaction.area_id }})
+                    {% else %}
+                        –
+                    {% endif %}
+                </span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Date of Transaction:</span><span>{{ transaction.date_of_transaction }}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Building Name:</span><span>{{ transaction.building_name|default:"–" }}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Location Name:</span><span>{{ transaction.location_name|default:"–" }}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Number of Rooms:</span><span>{{ transaction.number_of_rooms|default:"–" }}</span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Area (sq.ft.):</span><span>
+                    {% if transaction.sqm %}
+                        {{ transaction.sqm }}
+                    {% else %}
+                        –
+                    {% endif %}
+                </span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Transaction Price:</span><span>
+                    {% if transaction.transaction_price %}
+                        {{ transaction.transaction_price }}
+                    {% else %}
+                        –
+                    {% endif %}
+                </span>
+            </div>
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Detail Link:</span><span>
+                    {% if transaction.detail_link %}
+                        <a href="{{ transaction.detail_link }}"
+                           class="text-blue-400 break-all hover:underline"
+                           target="_blank">{{ transaction.detail_link }}</a>
+                    {% else %}
+                        –
+                    {% endif %}
+                </span>
+            </div>
+            <!-- something_important_v1 -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Something Important v1:</span><span>{{ transaction.something_important_v1|default:"–" }}</span>
+            </div>
+            <!-- contract_id -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Contract ID:</span><span>{{ transaction.contract_id|default:"–" }}</span>
+            </div>
+            <!-- contract_reg_type_id -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Contract Reg Type ID:</span><span>{{ transaction.contract_reg_type_id|default:"–" }}</span>
+            </div>
+            <!-- contract_reg_type_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Contract Reg Type (AR):</span><span>{{ transaction.contract_reg_type_ar|default:"–" }}</span>
+            </div>
+            <!-- contract_reg_type_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Contract Reg Type (EN):</span><span>{{ transaction.contract_reg_type_en|default:"–" }}</span>
+            </div>
+            <!-- contract_start_date -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Contract Start Date:</span><span>{{ transaction.contract_start_date }}</span>
+            </div>
+            <!-- contract_end_date -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Contract End Date:</span><span>{{ transaction.contract_end_date }}</span>
+            </div>
+            <!-- annual_amount -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Annual Amount:</span><span>{{ transaction.annual_amount }}</span>
+            </div>
+            <!-- no_of_prop -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">No. of Properties:</span><span>{{ transaction.no_of_prop }}</span>
+            </div>
+            <!-- line_number -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Line Number:</span><span>{{ transaction.line_number }}</span>
+            </div>
+            <!-- is_free_hold -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Is Free Hold:</span><span>
+                    {% if transaction.is_free_hold %}
+                        Yes
+                    {% else %}
+                        No
+                    {% endif %}
+                </span>
+            </div>
+            <!-- ejari_bus_property_type_id -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Ejari Bus Prop Type ID:</span><span>{{ transaction.ejari_bus_property_type_id|default:"–" }}</span>
+            </div>
+            <!-- ejari_bus_property_type_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Ejari Bus Prop Type (AR):</span><span>{{ transaction.ejari_bus_property_type_ar|default:"–" }}</span>
+            </div>
+            <!-- ejari_bus_property_type_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Ejari Bus Prop Type (EN):</span><span>{{ transaction.ejari_bus_property_type_en|default:"–" }}</span>
+            </div>
+            <!-- ejari_property_type_id -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Ejari Prop Type ID:</span><span>{{ transaction.ejari_property_type_id|default:"–" }}</span>
+            </div>
+            <!-- ejari_property_type_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Ejari Prop Type (EN):</span><span>{{ transaction.ejari_property_type_en|default:"–" }}</span>
+            </div>
+            <!-- ejari_property_type_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Ejari Prop Type (AR):</span><span>{{ transaction.ejari_property_type_ar|default:"–" }}</span>
+            </div>
+            <!-- ejari_property_sub_type_id -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Ejari Prop Sub Type ID:</span><span>{{ transaction.ejari_property_sub_type_id|default:"–" }}</span>
+            </div>
+            <!-- ejari_property_sub_type_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Ejari Prop Sub Type (EN):</span><span>{{ transaction.ejari_property_sub_type_en|default:"–" }}</span>
+            </div>
+            <!-- ejari_property_sub_type_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Ejari Prop Sub Type (AR):</span><span>{{ transaction.ejari_property_sub_type_ar|default:"–" }}</span>
+            </div>
+            <!-- property_usage_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Property Usage (EN):</span><span>{{ transaction.property_usage_en|default:"–" }}</span>
+            </div>
+            <!-- property_usage_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Property Usage (AR):</span><span>{{ transaction.property_usage_ar|default:"–" }}</span>
+            </div>
+            <!-- project_number -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Project Number:</span><span>{{ transaction.project_number|default:"–" }}</span>
+            </div>
+            <!-- project_name_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Project Name (AR):</span><span>{{ transaction.project_name_ar|default:"–" }}</span>
+            </div>
+            <!-- project_name_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Project Name (EN):</span><span>{{ transaction.project_name_en|default:"–" }}</span>
+            </div>
+            <!-- master_project_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Master Project (AR):</span><span>{{ transaction.master_project_ar|default:"–" }}</span>
+            </div>
+            <!-- master_project_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Master Project (EN):</span><span>{{ transaction.master_project_en|default:"–" }}</span>
+            </div>
+            <!-- area_id_csv -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Area ID CSV:</span><span>{{ transaction.area_id_csv }}</span>
+            </div>
+            <!-- area_name_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Area Name (AR):</span><span>{{ transaction.area_name_ar|default:"–" }}</span>
+            </div>
+            <!-- area_name_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Area Name (EN):</span><span>{{ transaction.area_name_en|default:"–" }}</span>
+            </div>
+            <!-- actual_area -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Actual Area:</span><span>{{ transaction.actual_area }}</span>
+            </div>
+            <!-- nearest_landmark_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Nearest Landmark (AR):</span><span>{{ transaction.nearest_landmark_ar|default:"–" }}</span>
+            </div>
+            <!-- nearest_landmark_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Nearest Landmark (EN):</span><span>{{ transaction.nearest_landmark_en|default:"–" }}</span>
+            </div>
+            <!-- nearest_metro_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Nearest Metro (AR):</span><span>{{ transaction.nearest_metro_ar|default:"–" }}</span>
+            </div>
+            <!-- nearest_metro_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Nearest Metro (EN):</span><span>{{ transaction.nearest_metro_en|default:"–" }}</span>
+            </div>
+            <!-- nearest_mall_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Nearest Mall (AR):</span><span>{{ transaction.nearest_mall_ar|default:"–" }}</span>
+            </div>
+            <!-- nearest_mall_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Nearest Mall (EN):</span><span>{{ transaction.nearest_mall_en|default:"–" }}</span>
+            </div>
+            <!-- tenant_type_id -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Tenant Type ID:</span><span>{{ transaction.tenant_type_id }}</span>
+            </div>
+            <!-- tenant_type_ar -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Tenant Type (AR):</span><span>{{ transaction.tenant_type_ar|default:"–" }}</span>
+            </div>
+            <!-- tenant_type_en -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Tenant Type (EN):</span><span>{{ transaction.tenant_type_en|default:"–" }}</span>
+            </div>
+            <!-- period -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Period:</span><span>{{ transaction.period|default:"–" }}</span>
+            </div>
+            <!-- meter_sale_price -->
+            <div class="flex flex-wrap gap-2">
+                <span class="w-48 font-semibold text-gray-400">Meter Sale Price:</span><span>{{ transaction.meter_sale_price }}</span>
+            </div>
+        </div>
+    </div>
+{% endblock content %}

@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+{% load humanize %}
+{% block head_title %}
+    Propertix - DLD
+{% endblock head_title %}
+
+{% block content %}
+    <div id="loading-spinner"
+         class="hidden fixed top-1/2 left-1/2 z-50 w-12 h-12 rounded-full border-4 border-gray-200 animate-spin border-t-blue-400">
+    </div>
+    <header class="p-6 mb-8 text-center bg-gray-800 rounded-xl border border-gray-700 transition-all">
+        <h1 class="mb-2 text-2xl font-bold">Propertix - Rent (DLD & Dubai Rest smart merge method)</h1>
+        <h2 class="mb-4 text-lg text-gray-400">Apartment category</h2>
+        <div class="flex gap-4 justify-center mb-2">
+            <a href="r2d2/"
+               class="py-2 px-4 font-semibold text-black bg-blue-400 rounded-lg transition hover:bg-blue-500">Building Reports</a>
+            <a href="pf-listings/sale/"
+               class="py-2 px-4 font-semibold text-black bg-blue-400 rounded-lg transition hover:bg-blue-500">Property Sale</a>
+            <a href="pf-listings/rent/"
+               class="py-2 px-4 font-semibold text-black bg-blue-400 rounded-lg transition hover:bg-blue-500">Property Rent</a>
+        </div>
+    </header>
+    <form method="get"
+          autocomplete="off"
+          class="flex relative flex-wrap gap-4 justify-center p-4 mb-6 bg-gray-800 rounded-lg border border-gray-700">
+        <input type="text"
+               name="q"
+               id="search-input"
+               placeholder="Start typing, man..."
+               value="{{ search_query }}"
+               class="py-2 px-4 text-gray-100 bg-gray-900 rounded-md border border-gray-700 focus:border-blue-400 focus:outline-none">
+        <select name="period"
+                class="py-2 px-4 text-gray-100 bg-gray-900 rounded-md border border-gray-700 focus:border-blue-400 focus:outline-none">
+            <option value="">Период</option>
+            {% for p in period_options %}
+                <option value="{{ p }}" {% if search_period == p %}selected{% endif %}>{{ p }}</option>
+            {% endfor %}
+        </select>
+        <select name="rooms"
+                class="py-2 px-4 text-gray-100 bg-gray-900 rounded-md border border-gray-700 focus:border-blue-400 focus:outline-none">
+            <option value="">Комнаты</option>
+            {% for r in room_options %}
+                <option value="{{ r }}" {% if search_rooms == r %}selected{% endif %}>{{ r }}</option>
+            {% endfor %}
+        </select>
+        <input type="hidden" name="object_type" id="object-type">
+        <input type="hidden" name="object_id" id="object-id">
+        <button type="submit"
+                class="py-2 px-4 font-semibold text-black bg-blue-400 rounded-md transition hover:bg-blue-500">
+            🔍 Найти
+        </button>
+        <div id="autocomplete-suggestions"
+             class="overflow-y-auto absolute right-0 left-0 top-full z-10 mt-2 max-h-64 bg-gray-900 rounded-md border border-gray-700 shadow-lg">
+        </div>
+    </form>
+    <div class="p-4 mb-4 text-sm font-semibold text-right text-gray-300 bg-gray-800 rounded-lg border border-gray-700">
+        Buildings:
+        {% if aggregates.selected_object and aggregates.selected_object.count_buildings %}
+            {{ aggregates.selected_object.count_buildings }}
+        {% else %}
+            {{ branch_stats.search_building_count|default:"–" }}
+        {% endif %}
+        &nbsp; | &nbsp;
+        Appartments:
+        {% if aggregates.selected_object and aggregates.selected_object.total_units %}
+            {{ aggregates.selected_object.total_units }}
+        {% else %}
+            {{ branch_stats.search_total_units|default:"–" }}
+        {% endif %}
+    </div>
+    <div class="grid grid-cols-1 gap-6 mb-8 md:grid-cols-2">
+        <div class="p-6 bg-gray-800 rounded-xl border border-gray-700">
+            <h1 class="mb-4 text-lg font-bold">Price</h1>
+            <div class="inline-block p-4 m-2 text-center align-top bg-gray-900 rounded-lg border border-gray-700 min-w-[140px]">
+                <h2 class="font-semibold">Avg Price</h2>
+                <p>
+                    {% if aggregates.avg_price %}
+                        {{ aggregates.avg_price }} AED
+                    {% else %}
+                        –
+                    {% endif %}
+                </p>
+                <canvas id="chartAvgPrice" class="mx-auto mt-2 w-24 h-12"></canvas>
+            </div>
+            <div class="inline-block p-4 m-2 text-center align-top bg-gray-900 rounded-lg border border-gray-700 min-w-[140px]">
+                <h2 class="font-semibold">Median Price</h2>
+                <p>
+                    {% if aggregates.median_price %}
+                        {{ aggregates.median_price }} AED
+                    {% else %}
+                        –
+                    {% endif %}
+                </p>
+                <canvas id="chartMedianPrice" class="mx-auto mt-2 w-24 h-12"></canvas>
+            </div>
+            <div class="inline-block p-4 m-2 text-center align-top bg-gray-900 rounded-lg border border-gray-700 min-w-[140px]">
+                <h2 class="font-semibold">Avg Price per sqm</h2>
+                <p>
+                    {% if aggregates.avg_meter %}
+                        {{ aggregates.avg_meter }} AED
+                    {% else %}
+                        –
+                    {% endif %}
+                </p>
+                <canvas id="chartAvgMeter" class="mx-auto mt-2 w-24 h-12"></canvas>
+            </div>
+            <div class="inline-block p-4 m-2 text-center align-top bg-gray-900 rounded-lg border border-gray-700 min-w-[140px]">
+                <h2 class="font-semibold">Price range</h2>
+                <p>
+                    {% if aggregates.min_meter and aggregates.max_meter %}
+                        {{ aggregates.min_meter }} – {{ aggregates.max_meter }} AED
+                    {% else %}
+                        –
+                    {% endif %}
+                </p>
+                <canvas id="chartPriceRange" class="mx-auto mt-2 w-24 h-12"></canvas>
+            </div>
+        </div>
+        <div class="p-6 bg-gray-800 rounded-xl border border-gray-700">
+            <h1 class="mb-4 text-lg font-bold">Market Volume</h1>
+            <div class="inline-block p-4 m-2 text-center align-top bg-gray-900 rounded-lg border border-gray-700 min-w-[140px]">
+                <h2 class="font-semibold">
+                    Deals
+                    <br>
+                    <br>
+                    {{ aggregates.count_deals }}
+                </h2>
+                <canvas id="chartDealsOverMonths" class="mx-auto mt-2 w-24 h-12"></canvas>
+            </div>
+            <div class="inline-block p-4 m-2 text-center align-top bg-gray-900 rounded-lg border border-gray-700 min-w-[140px]">
+                <h2 class="font-semibold">
+                    Deal volume
+                    <br>
+                    <br>
+                    {{ aggregates.total_deal_volume|default:"–" }}
+                </h2>
+                <canvas id="chartDealsVolume" class="mx-auto mt-2 w-24 h-12"></canvas>
+            </div>
+        </div>
+        <div class="p-6 bg-gray-800 rounded-xl border border-gray-700">
+            <h1 class="mb-4 text-lg font-bold">Liquidity</h1>
+            <div class="inline-block p-4 m-2 text-center align-top bg-gray-900 rounded-lg border border-gray-700 min-w-[140px]">
+                <h2 class="font-semibold">Deals to the num of apartments</h2>
+                <p>{{ branch_stats.ratio_3|default:"–" }}</p>
+                <canvas id="chartLiquidity" class="mx-auto mt-2 w-24 h-12"></canvas>
+            </div>
+        </div>
+        <div class="p-6 bg-gray-800 rounded-xl border border-gray-700">
+            <h1 class="mb-4 text-lg font-bold">ROI</h1>
+            <div class="inline-block p-4 m-2 text-center align-top bg-gray-900 rounded-lg border border-gray-700 min-w-[140px]">
+                <h2 class="font-semibold">Average ROI</h2>
+                <p>
+                    {% if aggregates.roi_value %}
+                        {{ aggregates.roi_value }} %
+                    {% else %}
+                        –
+                    {% endif %}
+                </p>
+                <canvas id="chartROI" class="mx-auto mt-2 w-24 h-12"></canvas>
+            </div>
+        </div>
+    </div>
+    <div class="overflow-x-auto mb-8">
+        <table class="w-full text-sm bg-gray-800 rounded-lg border-collapse">
+            <thead>
+                <tr>
+                    <th class="p-3 text-left text-gray-200 border border-gray-700">contract_id</th>
+                    <th class="p-3 text-left text-gray-200 border border-gray-700">area.name_en</th>
+                    <th class="p-3 text-left text-gray-200 border border-gray-700">rooms</th>
+                    <th class="p-3 text-left text-gray-200 border border-gray-700">annual_amount</th>
+                    <th class="p-3 text-left text-gray-200 border border-gray-700">meter_price</th>
+                    <th class="p-3 text-left text-gray-200 border border-gray-700">period</th>
+                    <th class="p-3 text-left text-gray-200 border border-gray-700">building</th>
+                    <th class="p-3 text-left text-gray-200 border border-gray-700">project</th>
+                    <th class="p-3 text-left text-gray-200 border border-gray-700">sqm</th>
+                    <th class="p-3 text-left text-gray-200 border border-gray-700">Master Project</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in page_obj %}
+                    <tr>
+                        <td class="p-3 border border-gray-700">{{ t.contract_id }}</td>
+                        <td class="p-3 border border-gray-700">{{ t.area.name_en|default:"–" }}</td>
+                        <td class="p-3 border border-gray-700">{{ t.number_of_rooms }}</td>
+                        <td class="p-3 border border-gray-700">{{ t.annual_amount }}</td>
+                        <td class="p-3 border border-gray-700">{{ t.meter_sale_price }}</td>
+                        <td class="p-3 border border-gray-700">
+                            {% if t.contract_start_date and t.contract_end_date %}
+                                {{ t.contract_start_date }} – {{ t.contract_end_date }}
+                            {% else %}
+                                –
+                            {% endif %}
+                        </td>
+                        <td class="p-3 border border-gray-700">{{ t.building_name|default:"–" }}</td>
+                        <td class="p-3 border border-gray-700">
+                            {% if t.project %}
+                                {{ t.project.english_name }}
+                            {% else %}
+                                –
+                            {% endif %}
+                        </td>
+                        <td class="p-3 border border-gray-700">{{ t.sqm }}</td>
+                        <td class="p-3 border border-gray-700">{{ t.master_project_en|default:"–" }}</td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="11" class="p-3 text-center border border-gray-700">Нет записей</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="flex gap-2 justify-center items-center mt-8">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode }}"
+               class="inline-block py-2 px-3 text-gray-100 bg-gray-900 rounded border border-gray-700 transition hover:bg-gray-700">← Пред</a>
+        {% endif %}
+        <span class="inline-block py-2 px-3 font-semibold text-gray-100 bg-gray-800 rounded border border-gray-700">Стр. {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode }}"
+               class="inline-block py-2 px-3 text-gray-100 bg-gray-900 rounded border border-gray-700 transition hover:bg-gray-700">След →</a>
+        {% endif %}
+    </div>
+{% endblock content %}
+
+{% block extra_body %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+    // Примерные данные
+    const sampleLabels = ['Янв', 'Фев', 'Мар', 'Апр', 'Май'];
+    const sampleData = [10, 20, 15, 25, 30];
+
+    // Общие опции для "чистого" графика
+    const noAxesOptions = {
+        responsive: false,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { display: false },
+        },
+        scales: {
+            x: {
+                display: false,
+                grid: { drawOnChartArea: false, drawTicks: false, drawBorder: false },
+            },
+            y: {
+                display: false,
+                grid: { drawOnChartArea: false, drawTicks: false, drawBorder: false },
+            }
+        },
+        layout: {
+            padding: 0
+        },
+        elements: {
+            line: {
+                borderWidth: 2,
+                tension: 0.3
+            },
+            point: {
+                radius: 2
+            }
+        }
+    };
+
+    function createChart(canvasId, type, data) {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        return new Chart(ctx, {
+            type: type,
+            data: data,
+            options: noAxesOptions
+        });
+    }
+
+    // Создаём графики
+    createChart('chartAvgPrice', 'line', {
+        labels: sampleLabels,
+        datasets: [{ data: sampleData }]
+    });
+    createChart('chartMedianPrice', 'line', {
+        labels: sampleLabels,
+        datasets: [{ data: sampleData.map(v => v + 5) }]
+    });
+    createChart('chartAvgMeter', 'line', {
+        labels: sampleLabels,
+        datasets: [{ data: sampleData.map(v => v * 2) }]
+    });
+    createChart('chartPriceRange', 'line', {
+        labels: sampleLabels,
+        datasets: [{ data: sampleData.map(v => v * 1.5) }]
+    });
+    createChart('chartDealsOverMonths', 'bar', {
+        labels: sampleLabels,
+        datasets: [{ data: sampleData }]
+    });
+    createChart('chartDealsVolume', 'bar', {
+        labels: sampleLabels,
+        datasets: [{ data: sampleData }]
+    });
+    createChart('chartLiquidity', 'line', {
+        labels: sampleLabels,
+        datasets: [{ data: sampleData.map(v => v - 3) }]
+    });
+    createChart('chartROI', 'line', {
+        labels: sampleLabels,
+        datasets: [{ data: sampleData.map(v => v + 10) }]
+    });
+
+    // Логика автокомплита
+    document.addEventListener("DOMContentLoaded", function(){
+        const searchInput = document.getElementById("search-input");
+        const suggestionsDiv = document.getElementById("autocomplete-suggestions");
+        const objectTypeField = document.getElementById("object-type");
+        const objectIdField = document.getElementById("object-id");
+        const spinner = document.getElementById("loading-spinner");
+
+        searchInput.addEventListener("input", function(){
+            const query = searchInput.value.trim();
+            if (query.length < 2) {
+                suggestionsDiv.innerHTML = "";
+                return;
+            }
+            // Показать спиннер перед fetch
+            spinner.style.display = "block";
+
+            fetch("/autocomplete/?q=" + encodeURIComponent(query))
+                .then(response => response.json())
+                .then(data => {
+                    let html = "";
+                    if (data.areas.length > 0){
+                        html += '<div class="suggestion-group">Areas</div>';
+                        data.areas.forEach(item => {
+                            html += `<div class="suggestion" data-type="area" data-id="${item.id}" data-name="${item.name}">${item.name}</div>`;
+                        });
+                    }
+                    if (data.buildings.length > 0){
+                        html += '<div class="suggestion-group">Buildings</div>';
+                        data.buildings.forEach(item => {
+                            html += `<div class="suggestion" data-type="building" data-id="${item.id}" data-name="${item.name}">${item.name}</div>`;
+                        });
+                    }
+                    if (data.projects.length > 0){
+                        html += '<div class="suggestion-group">Projects</div>';
+                        data.projects.forEach(item => {
+                            html += `<div class="suggestion" data-type="project" data-id="${item.id}" data-name="${item.name}">${item.name}</div>`;
+                        });
+                    }
+                    suggestionsDiv.innerHTML = html;
+                })
+                .catch(err => {
+                    console.error(err);
+                    suggestionsDiv.innerHTML = "";
+                })
+                .finally(() => {
+                    // Скрыть спиннер после завершения
+                    spinner.style.display = "none";
+                });
+        });
+
+        suggestionsDiv.addEventListener("click", function(e){
+            if(e.target.classList.contains("suggestion")){
+                const type = e.target.getAttribute("data-type");
+                const id = e.target.getAttribute("data-id");
+                const name = e.target.getAttribute("data-name");
+                objectTypeField.value = type;
+                objectIdField.value = id;
+                searchInput.value = type.charAt(0).toUpperCase() + type.slice(1) + ": " + name;
+                suggestionsDiv.innerHTML = "";
+            }
+        });
+
+        document.addEventListener("click", function(e){
+            // Закрыть выпадающий список, если клик вне
+            if(e.target !== searchInput && !suggestionsDiv.contains(e.target)){
+                suggestionsDiv.innerHTML = "";
+            }
+        });
+    });
+    </script>
+{% endblock extra_body %}

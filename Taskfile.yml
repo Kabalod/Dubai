@@ -1,0 +1,80 @@
+version: '3'
+
+vars:
+  COMPOSE_CMD: docker-compose --profile "*"
+
+tasks:
+  default:
+    cmds:
+      - task: --list-all
+    silent: true
+
+  # ========================================
+  # Docker Management
+  # ========================================
+  docker:up:
+    desc: "Запустить все сервисы (бэкенд, фронтенд, мониторинг) через Docker Compose"
+    cmds:
+      - "{{.COMPOSE_CMD}} up -d"
+
+  docker:down:
+    desc: "Остановить все сервисы Docker Compose"
+    cmds:
+      - "{{.COMPOSE_CMD}} down"
+
+  docker:logs:
+    desc: "Показать логи всех запущенных сервисов"
+    cmds:
+      - "{{.COMPOSE_CMD}} logs -f"
+
+  docker:build:
+    desc: "Пересобрать Docker-образы для всех сервисов"
+    cmds:
+      - "{{.COMPOSE_CMD}} build --no-cache"
+
+  docker:ps:
+    desc: "Показать статус запущенных контейнеров"
+    cmds:
+      - "{{.COMPOSE_CMD}} ps"
+
+  # ========================================
+  # Backend (realty-main)
+  # ========================================
+  backend:migrate:
+    desc: "Выполнить миграции базы данных для Django (realty-main)"
+    dir: ./apps/realty-main
+    cmds:
+      - docker-compose exec realty-main-web python manage.py migrate
+
+  backend:test:
+    desc: "Запустить тесты для Django (realty-main)"
+    dir: ./apps/realty-main
+    cmds:
+      - docker-compose exec realty-main-web python manage.py test
+
+  backend:shell:
+    desc: "Открыть Django shell для realty-main"
+    dir: ./apps/realty-main
+    cmds:
+      - docker-compose exec realty-main-web python manage.py shell
+
+  # ========================================
+  # Frontend (DXB-frontend-develop)
+  # ========================================
+  frontend:install:
+    desc: "Установить npm-зависимости для фронтенда"
+    dir: ./apps/DXB-frontend-develop
+    cmds:
+      - docker-compose run --rm dxb-frontend npm install
+
+  frontend:test:
+    desc: "Запустить тесты для фронтенда"
+    dir: ./apps/DXB-frontend-develop
+    cmds:
+      - docker-compose run --rm dxb-frontend npm test
+
+  frontend:lint:
+    desc: "Запустить линтер для фронтенда"
+    dir: ./apps/DXB-frontend-develop
+    cmds:
+      - docker-compose run --rm dxb-frontend npm run lint

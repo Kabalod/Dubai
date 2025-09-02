@@ -1,0 +1,50 @@
+.root {
+  padding: 20px;
+  text-align: center;
+}
+
+.lead {
+  font-size: 18px;
+  color: var(--color-muted);
+}
+
+.links {
+  margin: 40px 0;
+}
+
+.linkRow {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.btn {
+  padding: 10px 20px;
+  color: #fff;
+  text-decoration: none;
+  border-radius: var(--radius-sm);
+}
+
+.btnHome {
+  background: var(--color-blue);
+}
+
+.btnDash {
+  background: var(--color-green);
+}
+
+.btnAnalytics {
+  background: var(--color-purple);
+}
+
+.btnAuth {
+  background: #fa8c16;
+}
+
+.backLink {
+  color: var(--color-blue);
+}
+
+
+

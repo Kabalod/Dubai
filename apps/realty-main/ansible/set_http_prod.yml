@@ -1,0 +1,39 @@
+---
+- hosts: all
+  become: true
+  vars:
+    nginx_path: /etc/nginx
+    nginx_sites: "{{ nginx_path }}/sites-enabled"
+    my_hostname: app.propertix.ai
+    name_project: realty
+    work_dir: "/home/panchuk35/{{ name_project }}"
+    access_token: GR1348941w8E-3fgAsm7s7mL-kbZ7
+    app_port: 8000
+
+  tasks:
+
+    - name: Register runner
+      ansible.builtin.command: "gitlab-runner register --non-interactive --executor shell --shell bash --description 'prod_realty' --tag-list 'prod_realty' --url 'https://gitlab2.prod-it.com/' --registration-token '{{ access_token }}'"
+
+    ###########################################
+
+    - name: Setup nginx vhost
+      template:
+        src=yoursite.com.conf.tpl
+        dest="{{ nginx_sites }}/{{ my_hostname }}.conf"
+      notify: restart nginx
+
+    - name: Allow all access to tcp port 80
+      community.general.ufw:
+        rule: allow
+        port: '80'
+        proto: tcp
+
+    - name: Rm default
+      ansible.builtin.command: rm -f "{{ nginx_sites }}/default"
+
+  handlers:
+    - name: restart nginx
+      service:
+        name=nginx
+        state=restarted

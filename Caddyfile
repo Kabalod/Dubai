@@ -1,0 +1,40 @@
+# 🚀 Caddy Configuration for Dubai MVP Frontend
+# Простая и надежная замена nginx
+
+:80 {
+    # Корневая директория для React приложения
+    root * /usr/share/caddy
+    file_server
+    
+    # React SPA маршрутизация
+    try_files {path} /index.html
+    
+    # API endpoints - проксирование к backend
+    reverse_proxy /api/* https://workerproject-production.up.railway.app {
+        # Передаем заголовки
+        header_up Host {upstream_hostport}
+        header_up X-Real-IP {remote_host}
+        header_up X-Forwarded-For {remote_host}
+        header_up X-Forwarded-Proto {scheme}
+        
+        # CORS заголовки
+        header_down Access-Control-Allow-Origin *
+        header_down Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+        header_down Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+        
+        # Настройки транспорта
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+    
+    # Статические файлы с кешированием
+    @static {
+        file
+        path *.js *.css *.png *.jpg *.jpeg *.gif *.ico *.svg *.woff *.woff2 *.ttf *.eot
+    }
+    header @static Cache-Control "public, max-age=31536000, immutable"
+    
+    # Health check endpoint
+    respond /health "healthy" 200
+}

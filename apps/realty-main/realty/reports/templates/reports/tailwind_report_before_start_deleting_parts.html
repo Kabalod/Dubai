@@ -1,0 +1,718 @@
+{% extends "base.html" %}
+{% load report_extras static %}
+
+{% block content %}
+<div class="container py-8 px-6 mx-auto">
+  <!-- Форма выбора -->
+  <form method="post" class="flex flex-wrap gap-4 items-end mb-10">
+    {% csrf_token %}
+    <div class="w-full sm:w-1/2 lg:w-1/3">
+      <label for="building" class="block text-sm font-medium text-gray-700">Здание</label>
+      <select id="building" name="building"
+              class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        <option value="" disabled {% if not selected_building %}selected{% endif %}>— выберите здание —</option>
+        {% for b in buildings %}
+          <option value="{{ b.pk }}" {% if selected_building and b.pk == selected_building.pk %}selected{% endif %}>
+            {{ b.name }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="w-full sm:w-1/3 lg:w-1/5">
+      <label for="bedrooms" class="block text-sm font-medium text-gray-700">Комнатность</label>
+      <select id="bedrooms" name="bedrooms"
+              class="block mt-1 w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+        <option value="" disabled {% if not selected_bedrooms %}selected{% endif %}>— выберите —</option>
+        {% for key,label in bedroom_choices %}
+          <option value="{{ key }}" {% if selected_bedrooms == key %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit"
+            class="py-2 px-6 text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+      Just report
+    </button>
+  </form>
+
+<!-- В head -->
+<link href="https://cdn.osmbuildings.org/4.1.1/OSMBuildings.css" rel="stylesheet">
+<script src="https://cdn.osmbuildings.org/4.1.1/OSMBuildings.js"></script>
+
+<!-- В том месте, где нужна карта -->
+{% if building_report and building_report.building.latitude and building_report.building.longitude %}
+<div id="osmb-map" style="width:100%;height:400px;"></div>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    var lat = {{ building_report.building.latitude|default:"25.1972" }};
+    var lon = {{ building_report.building.longitude|default:"55.2744" }};
+    var map = new OSMBuildings({
+      container: 'osmb-map',
+      position: { latitude: lat, longitude: lon },
+      zoom: 17,
+      minZoom: 15,
+      maxZoom: 20,
+      attribution: '© Data <a href="https://openstreetmap.org/copyright/">OpenStreetMap</a> © Map <a href="https://osmbuildings.org/copyright/">OSM Buildings</a>'
+    });
+
+    map.addMapTiles('https://tile-a.openstreetmap.fr/hot/{z}/{x}/{y}.png');
+    map.addGeoJSONTiles('https://{s}.data.osmbuildings.org/0.2/59fcc2e8/tile/{z}/{x}/{y}.json');
+
+    // Если хочешь метку — добавь:
+    map.addMapMarker({ latitude: lat, longitude: lon });
+  });
+</script>
+{% endif %}
+
+{% if building_report %}
+
+{# ======= ПРОДАЖА ======= #}
+<section class="mb-12">
+  <h3 class="mb-4 text-2xl font-semibold">Продажа</h3>
+
+  <table class="w-full border-collapse table-auto">
+    <thead>
+      <tr class="text-left bg-gray-100">
+        <th class="py-2 px-4">Метрика</th><th class="py-2 px-4"></th>
+        <th class="py-2 px-4">BuildingReport</th><th class="py-2 px-4"></th>
+        <th class="py-2 px-4">AreaReport</th><th class="py-2 px-4"></th>
+        <th class="py-2 px-4">CityReport</th><th class="py-2 px-4"></th>
+      </tr>
+    </thead>
+
+    <tbody class="divide-y">
+
+      {# --- средняя цена --- #}
+      <tr>
+        <td class="py-2 px-4">Средняя цена</td>
+        <td>
+
+        </td>
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя цена в билдинге / br
+          <br><br><b>{{ building_report.avg_sale_price }}</b>
+        </td>
+        <td>
+
+        </td>
+
+
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя цена по району / br
+          <br><br><b>{{ area_report.avg_sale_price }}</b>
+        </td><td></td>
+        <td>
+
+
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя цена в Дубае / br
+          <br><br><b>{{ city_report.avg_price }}</b>
+        </td><td></td>
+
+
+      </tr>
+      {# --- средняя по зданию --- #}
+      <tr>
+        <td class="py-2 px-4">Средняя по зданию</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя в билдинге / br
+          <br><br><b>{{ building_report.avg_sale_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя среди билдингов в районе / br
+          <br><br><b>{{ area_report.avg_sale_price_by_building }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя цена среди билдингов в Дубае / br
+          <br><br><b>{{ city_report.avg_price_by_building }}</b>
+        </td><td></td>
+      </tr>
+
+      {# --- медиана --- #}
+      <tr>
+        <td class="py-2 px-4">Медиана</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Медианная в билдинге / br
+          <br><br><b>{{ building_report.median_sale_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Медианная в районе / br
+          <br><br><b>{{ area_report.median_sale_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Медианная в Дубае / br
+          <br><br><b>{{ city_report.median_price }}</b>
+        </td><td></td>
+      </tr>
+
+      {# --- разброс цен --- #}
+      <tr>
+        <td class="py-2 px-4">Разброс цен</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Разброс цен в билдинге / br
+          <br><br><b>{{ building_report.min_sale_price }} – {{ building_report.max_sale_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Разброс цен в районе / br
+          <br><br><b>{{ area_report.min_sale_price }} – area_report.max_sale_price</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Разброс цен в Дубае / br
+          <br><br><b>{{ city_report.min_price }} – {{ city_report.max_price }}</b>
+        </td><td></td>
+      </tr>
+
+      {# --- кол-во объявлений --- #}
+      <tr>
+        <td class="py-2 px-4">Кол-во объявлений</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Количество объявлений / br
+          <br><br><b>{{ building_report.sale_count }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">—</td><td></td>
+        <td class="py-2 px-4 text-white bg-green-400">—</td><td></td>
+      </tr>
+
+      {# --- средняя экспозиция (число выводим) --- #}
+      <tr>
+        <td class="py-2 px-4">Средняя экспозиция</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Экспозиция в билдинге (days)
+          <br><br><b>{{ building_report.avg_exposure_sale_days }}</b><br>
+          {{ building_report.avg_exposure_sale_days|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Экспозиция в среднем билдинге района
+          <br><br><b>{{ area_report.avg_exposure_sale_days }}</b><br>
+          {{ area_report.avg_exposure_sale_days|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Экспозиция в среднем билдинге Дубая
+          <br><br><b>{{ city_report.avg_exposure_days }}</b><br>
+          {{ city_report.avg_exposure_days|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+      </tr>
+
+      {# --- удельная частота продаж (значение + жёлтый фон) --- #}
+      <tr class="bg-yellow-300">
+        <td class="py-2 px-4">Удельная частота продаж</td><td></td>
+
+        <td class="py-2 px-4">
+          кол Объявлений / кол Квартир / br
+          <br><br><b>{{ building_report.sale_per_unit_ratio }}</b><br>
+          {{ building_report.sale_per_unit_ratio|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+
+        <td class="py-2 px-4">
+          кол Объявлений / кол Квартир (в среднем билдинге района) /
+          <span class="text-red-600">взять среднее арифметическое среди билдингов</span><br>
+          <br><br><b>{{ area_report.avg_sale_per_unit_ratio }}</b><br>
+          {{ area_report.avg_sale_per_unit_ratio|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+
+        <td class="py-2 px-4">
+          кол Объявлений / кол Квартир (в среднем билдинге Дубая) /
+          <span class="text-red-600">взять среднее арифметическое среди билдингов</span><br>
+          <br><br><b>{{ city_report.avg_sale_per_unit_ratio }}</b><br>
+          {{ city_report.avg_sale_per_unit_ratio|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+      </tr>
+
+      {# --- ROI (значение + жёлтый фон) --- #}
+      <tr class="bg-yellow-300">
+        <td class="py-2 px-4">ROI</td><td></td>
+
+        <td class="py-2 px-4">
+          ROI (средняя аренда / средняя продажа)
+          <br><br><b>{{ building_report.roi }}</b><br>
+          {{ building_report.roi|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+
+        <td class="py-2 px-4">
+          ROI (средний roi среди билдингов в районе) /
+          <span class="text-red-600">просто взять среднее арифметическое среди билдингов</span><br>
+          <br><br><b>{{ area_report.avg_roi }}</b><br>
+          {{ area_report.avg_roi|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+
+        <td class="py-2 px-4">
+          ROI (средний roi среди билдингов в Дубае) /
+          <span class="text-red-600">просто взять среднее арифметическое среди билдингов</span><br>
+          <br><br><b>{{ city_report.avg_roi }}</b><br>
+          {{ city_report.avg_roi|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+
+{# ======= АРЕНДА ======= #}
+<section class="mb-12">
+  <h3 class="mb-4 text-2xl font-semibold">Аренда</h3>
+
+  <table class="w-full border-collapse table-auto">
+    <thead>
+      <tr class="text-left bg-gray-100">
+        <th class="py-2 px-4">Метрика</th><th class="py-2 px-4"></th>
+        <th class="py-2 px-4">BuildingReport</th><th class="py-2 px-4"></th>
+        <th class="py-2 px-4">AreaReport</th><th class="py-2 px-4"></th>
+        <th class="py-2 px-4">CityReport</th><th class="py-2 px-4"></th>
+      </tr>
+    </thead>
+
+    <tbody class="divide-y">
+
+      {# --- средняя цена аренды --- #}
+      <tr>
+        <td class="py-2 px-4">Средняя цена аренды</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя аренда в билдинге / br
+          <br><br><b>{{ building_report.avg_rent_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя аренда по району / br
+          <br><br><b>{{ area_report.avg_rent_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя аренда в Дубае / br
+          <br><br><b>{{ city_report.avg_rent_price }}</b>
+        </td><td></td>
+      </tr>
+
+      {# --- средняя по зданию (аренда) --- #}
+      <tr>
+        <td class="py-2 px-4">Средняя по зданию</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя аренда в билдинге / br
+          <br><br><b>{{ building_report.avg_rent_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя среди билдингов в районе / br
+          <br><br><b>{{ area_report.avg_rent_price_by_building }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Средняя аренда среди билдингов в Дубае / br
+          <br><br><b>{{ city_report.avg_rent_price_by_building }}</b>
+        </td><td></td>
+      </tr>
+
+      {# --- медиана аренды --- #}
+      <tr>
+        <td class="py-2 px-4">Медиана аренды</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Медианная аренда в билдинге / br
+          <br><br><b>{{ building_report.median_rent_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Медианная аренда в районе / br
+          <br><br><b>{{ area_report.median_rent_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Медианная аренда в Дубае / br
+          <br><br><b>{{ city_report.median_rent_price }}</b>
+        </td><td></td>
+      </tr>
+
+      {# --- разброс аренды --- #}
+      <tr>
+        <td class="py-2 px-4">Разброс цен аренды</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Разброс аренд в билдинге / br
+          <br><br><b>{{ building_report.min_rent_price }} – {{ building_report.max_rent_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Разброс аренд в районе / br
+          <b>area_report.min_rent_price  – {{ area_report.max_rent_price }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Разброс аренд в Дубае / br
+          <br><br><b>{{ city_report.min_rent_price }} – {{ city_report.max_rent_price }}</b>
+        </td><td></td>
+      </tr>
+
+      {# --- кол-во объявлений аренды --- #}
+      <tr>
+        <td class="py-2 px-4">Кол-во объявлений аренды</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Количество объявлений аренды / br
+          <br><br><b>{{ building_report.rent_count }}</b>
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">—</td><td></td>
+        <td class="py-2 px-4 text-white bg-green-400">—</td><td></td>
+      </tr>
+
+      {# --- средняя экспозиция аренды (значение) --- #}
+      <tr>
+        <td class="py-2 px-4">Средняя экспозиция аренды</td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Экспозиция аренд в билдинге (days)
+          <br><br><b>{{ building_report.avg_exposure_rent_days }}</b><br>
+          {{ building_report.avg_exposure_rent_days|floatformat:"3"|default:"—" }}
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Экспозиция в среднем билдинге района
+          <br><br><b>{{ area_report.avg_exposure_rent_days }}</b><br>
+          {{ area_report.avg_exposure_rent_days|floatformat:"3"|default:"—" }}
+        </td><td></td>
+
+        <td class="py-2 px-4 text-white bg-green-400">
+          Экспозиция в среднем билдинге Дубая
+          <br><br><b>{{ city_report.avg_exposure_rent_days }}</b><br>
+          {{ city_report.avg_exposure_rent_days|floatformat:"3"|default:"—" }}
+        </td><td></td>
+      </tr>
+
+      {# --- ROI аренды (значение + жёлтый фон) --- #}
+      <tr class="bg-yellow-300">
+        <td class="py-2 px-4">ROI аренды</td><td></td>
+
+        <td class="py-2 px-4">
+          ROI аренды в билдинге
+          <br><br><b>{{ building_report.roi }}</b><br>
+          {{ building_report.roi|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow">!</td>
+
+        <td class="py-2 px-4">
+          ROI аренды в районе
+          <br><br><b>{{ area_report.avg_tx_per_building_py_rent }}</b><br>
+          {{ area_report.avg_roi|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+
+        <td class="py-2 px-4">
+          ROI аренды в Дубае
+          <br><br><b>{{ city_report.avg_roi }}</b><br>
+          {{ city_report.avg_tx_per_building_py_rent|floatformat:"3"|default:"—" }}
+        </td><td class="bg-white shadow"></td>
+      </tr>
+
+    </tbody>
+  </table>
+</section>
+</div>
+
+
+<hr>
+  <!-- Таблица: DLD Building Report -->{% if building_report.dld_building %}
+  <h3 class="mb-4 text-2xl font-semibold">DLD Building Report with dld name <b></h3><h1>{{ building_report.dld_building }} </h1></b><br>by dld in area<h1>{{ building_report.dld_building.area }} </h1><br>by pf area merging coords from rest dubai we have pf_area like   <h1>{{ building_report.dld_building.area_by_pf }} </h1>
+<hr><hr><hr>
+
+  <section class="mb-12">
+    <h3 class="mb-4 text-2xl font-semibold">Аренда</h3>
+    <table class="w-full text-left border-collapse table-auto">
+      <thead>
+        <tr class="bg-gray-100">
+          <th class="py-2 px-4">Метрика</th>
+          <th class="py-2 px-4">BuildingReport</th>
+          <th class="py-2 px-4">AreaReport</th>
+          <th class="py-2 px-4">CityReport</th>
+        </tr>
+      </thead>
+      <tbody class="">
+        <tr>
+          <td class="py-2 px-4">Средняя цена аренды</td>
+          <td class="py-2 px-4">building_report.avg_rent_price</td><td>{{ building_report.avg_rent_price|default:"no data по объекту" }} </td>
+          <td class="py-2 px-4">{{ area_report.avg_rent_price|default:"no data по объекту" }} area_report.avg_rent_price</td>
+          <td class="py-2 px-4">{{ city_report.avg_rent_price|default:"no data по объекту" }} city_report.avg_rent_price</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Средняя по зданию</td>
+          <td class="py-2 px-4">{{ building_report.avg_rent_price|default:"no data по объекту" }} building_report.avg_rent_price</td>
+          <td class="py-2 px-4">{{ area_report.avg_rent_price_by_building|default:"no data по объекту" }} area_report.avg_rent_price_by_building</td>
+          <td class="py-2 px-4">{{ city_report.avg_rent_price_by_building|default:"no data по объекту" }} city_report.avg_rent_price_by_building</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Медиана аренды</td>
+          <td class="py-2 px-4">{{ building_report.median_rent_price|default:"no data по объекту" }} building_report.median_rent_price</td>
+          <td class="py-2 px-4">{{ area_report.median_rent_price|default:"no data по объекту" }} area_report.median_rent_price</td>
+          <td class="py-2 px-4">{{ city_report.median_rent_price|default:"no data по объекту" }} city_report.median_rent_price</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Разброс цен аренды</td>
+          <td class="py-2 px-4">{{ building_report.min_rent_price }} building_report.min_rent_price – {{ building_report.max_rent_price }} building_report.max_rent_price</td>
+          <td class="py-2 px-4">{{ area_report.min_sale_price }} area_report.min_sale_price – {{ area_report.max_rent_price }} area_report.max_rent_price</td>
+          <td class="py-2 px-4">{{ city_report.min_rent_price }} city_report.min_rent_price – {{ city_report.max_rent_price }} city_report.max_rent_price</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Кол-во объявлений аренды</td>
+          <td class="py-2 px-4">{{ building_report.rent_count|floatformat:"3" }} building_report.rent_count</td>
+          <td class="py-2 px-4">—</td>
+          <td class="py-2 px-4">—</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Средняя экспозиция аренды</td>
+          <td class="py-2 px-4">{{ building_report.avg_exposure_rent_days|default:"no data по объекту" }} building_report.avg_exposure_rent_days</td>
+          <td class="py-2 px-4">{{ area_report.avg_exposure_rent_days }} area_report.avg_exposure_rent_days</td>
+          <td class="py-2 px-4">{{ city_report.avg_exposure_rent_days|default:"no data по объекту" }} city_report.avg_exposure_rent_days</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">ROI аренды</td>
+          <td class="py-2 px-4">{{ building_report.roi|floatformat:"3"|default:"no data по объекту" }} building_report.roi</td>
+          <td class="py-2 px-4">{{ area_report.avg_roi|floatformat:"3"|default:"no data по объекту" }} area_report.avg_roi</td>
+          <td class="py-2 px-4">{{ city_report.avg_roi|floatformat:"3"|default:"no data по объекту" }} city_report.avg_roi</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <h1>dld</h1>
+  <section class="mb-12">
+    <h3 class="mb-4 text-2xl font-semibold">SALE</h3>
+    <table class="w-full text-left border-collapse table-auto">
+      <thead>
+        <tr class="bg-gray-100">
+          <th class="py-2 px-4">Метрика</th>
+          <th class="py-2 px-4">BuildingReport</th>
+          <th class="py-2 px-4">AreaReport</th>
+          <th class="py-2 px-4">CityReport</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <tr>
+          <td class="py-2 px-4">Средняя цена продажи</td>
+          <td class="py-2 px-4">{{ dld_report.avg_sale_price_ly|floatformat:"3" }} building_report.avg_sale_price</td>
+          <td class="py-2 px-4">{{ area_report.avg_sale_price|floatformat:"0" }} area_report.avg_sale_price</td>
+          <td class="py-2 px-4">{{ city_report.avg_price|floatformat:"0" }} city_report.avg_price</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Средняя по зданию</td>
+          <td class="py-2 px-4">{{ building_report.avg_sale_price|floatformat:"0" }} building_report.avg_sale_price</td>
+          <td class="py-2 px-4">{{ area_report.avg_sale_price_by_building|floatformat:"0" }} area_report.avg_sale_price_by_building</td>
+          <td class="py-2 px-4">{{ city_report.avg_price_by_building|floatformat:"0" }} city_report.avg_price_by_building</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Медиана продажи</td>
+          <td class="py-2 px-4">{{ building_report.median_sale_price|floatformat:"0" }} building_report.median_sale_price</td>
+          <td class="py-2 px-4">{{ area_report.median_sale_price|floatformat:"0" }} area_report.median_sale_price</td>
+          <td class="py-2 px-4">{{ city_report.median_price|floatformat:"0" }} city_report.median_price</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Разброс цен продажи</td>
+          <td class="py-2 px-4">{{ building_report.min_sale_price|floatformat:"0" }} building_report.min_sale_price – {{ building_report.max_sale_price|floatformat:"0" }} building_report.max_sale_price</td>
+          <td class="py-2 px-4">{{ area_report.min_sale_price|floatformat:"0" }} area_report.min_sale_price</td>
+          <td class="py-2 px-4">{{ city_report.min_price|floatformat:"0" }} city_report.min_price – {{ city_report.max_price|floatformat:"0" }} city_report.max_price</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Кол-во объявлений продажи</td>
+          <td class="py-2 px-4">{{ building_report.sale_count }} building_report.sale_count</td>
+          <td class="py-2 px-4">—</td>
+          <td class="py-2 px-4">—</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">(дней)</td>
+          <td class="py-2 px-4">{{ building_report.avg_exposure_sale_days|floatformat:"0" }} building_report.avg_exposure_sale_days</td>
+          <td class="py-2 px-4">{{ area_report.avg_exposure_sale_days|floatformat:"0" }} area_report.avg_exposure_sale_days</td>
+          <td class="py-2 px-4">{{ city_report.avg_exposure_days|floatformat:"0" }} city_report.avg_exposure_days</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">ROI (рентабельность)</td>
+          <td class="py-2 px-4">{{ building_report.roi|floatformat:"3" }} building_report.roi</td>
+          <td class="py-2 px-4">{{ area_report.avg_roi|floatformat:"3" }} area_report.avg_roi</td>
+          <td class="py-2 px-4">{{ city_report.avg_roi|floatformat:"3" }} city_report.avg_roi</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Ликвидность, сделок на юнит</td>
+          <td class="py-2 px-4">{{ building_report.sale_per_unit_ratio|floatformat:"3" }} building_report.sale_per_unit_ratio</td>
+          <td class="py-2 px-4">{{ area_report.avg_sale_per_unit_ratio|floatformat:"3" }} area_report.avg_sale_per_unit_ratio</td>
+          <td class="py-2 px-4">{{ city_report.avg_sale_per_unit_ratio|floatformat:"3" }} city_report.avg_sale_per_unit_ratio</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <section class="mb-12">
+    <h3 class="mb-4 text-2xl font-semibold">RENT (Аренда)</h3>
+    <table class="w-full text-left border-collapse table-auto">
+      <thead>
+        <tr class="bg-gray-100">
+          <th class="py-2 px-4">Метрика</th>
+          <th class="py-2 px-4">BuildingReport</th>
+          <th class="py-2 px-4">AreaReport</th>
+          <th class="py-2 px-4">CityReport</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <tr>
+          <td class="py-2 px-4">Средняя цена аренды</td>
+          <td class="py-2 px-4">{{ building_report.avg_rent_price|floatformat:"0" }} building_report.avg_rent_price</td>
+          <td class="py-2 px-4">{{ area_report.avg_rent_price|floatformat:"0" }} area_report.avg_rent_price</td>
+          <td class="py-2 px-4">{{ city_report.avg_rent_price|floatformat:"0" }} city_report.avg_rent_price</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Средняя по зданию</td>
+          <td class="py-2 px-4">{{ building_report.avg_rent_price|floatformat:"0" }} building_report.avg_rent_price</td>
+          <td class="py-2 px-4">{{ area_report.avg_rent_price_by_building|floatformat:"0" }} area_report.avg_rent_price_by_building</td>
+          <td class="py-2 px-4">{{ city_report.avg_rent_price_by_building|floatformat:"0" }} city_report.avg_rent_price_by_building</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Медиана аренды</td>
+          <td class="py-2 px-4">{{ building_report.median_rent_price|floatformat:"0" }} building_report.median_rent_price</td>
+          <td class="py-2 px-4">{{ area_report.median_rent_price|floatformat:"0" }} area_report.median_rent_price</td>
+          <td class="py-2 px-4">{{ city_report.median_rent_price|floatformat:"0" }} city_report.median_rent_price</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Разброс цен аренды</td>
+          <td class="py-2 px-4">{{ building_report.min_rent_price|floatformat:"0" }} building_report.min_rent_price – {{ building_report.max_rent_price|floatformat:"0" }} building_report.max_rent_price</td>
+          <td class="py-2 px-4">—</td>
+          <td class="py-2 px-4">{{ city_report.min_rent_price|floatformat:"0" }} city_report.min_rent_price – {{ city_report.max_rent_price|floatformat:"0" }} city_report.max_rent_price</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Кол-во объявлений аренды</td>
+          <td class="py-2 px-4">{{ building_report.rent_count }} building_report.rent_count</td>
+          <td class="py-2 px-4">—</td>
+          <td class="py-2 px-4">—</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">аренды (дней)</td>
+          <td class="py-2 px-4">{{ building_report.avg_exposure_rent_days|floatformat:"0" }} building_report.avg_exposure_rent_days</td>
+          <td class="py-2 px-4">{{ area_report.avg_exposure_rent_days|floatformat:"0" }} area_report.avg_exposure_rent_days</td>
+          <td class="py-2 px-4">{{ city_report.avg_exposure_rent_days|floatformat:"0" }} city_report.avg_exposure_rent_days</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">ROI (рентабельность)</td>
+          <td class="py-2 px-4">{{ building_report.roi|floatformat:"3" }} building_report.roi</td>
+          <td class="py-2 px-4">{{ area_report.avg_roi|floatformat:"3" }} area_report.avg_roi</td>
+          <td class="py-2 px-4">{{ city_report.avg_roi|floatformat:"3" }} city_report.avg_roi</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Ликвидность, аренда на юнит</td>
+          <td class="py-2 px-4">{{ building_report.rent_per_unit_ratio|floatformat:"3" }} building_report.rent_per_unit_ratio</td>
+          <td class="py-2 px-4">{{ area_report.avg_rent_per_unit_ratio|floatformat:"3" }} area_report.avg_rent_per_unit_ratio</td>
+          <td class="py-2 px-4">{{ city_report.avg_rent_per_unit_ratio|floatformat:"3" }} city_report.avg_rent_per_unit_ratio</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  {% endif %}
+{% endif %}
+
+{% comment %}────────────────  DLD BLOCK  ────────────────{% endcomment %}
+{% if dld_report %}
+<h2 class="mt-12 mb-4 text-2xl font-bold">DLD Продажа</h2>
+
+<table class="mb-12 w-full border-collapse table-auto">
+  <thead class="bg-gray-200">
+    <tr>
+      <th class="py-2 px-3"></th>
+      <th colspan="2" class="py-2 px-3 text-center border-r">Билдинг</th>
+      <th colspan="2" class="py-2 px-3 text-center border-r">Район</th>
+      <th colspan="2" class="py-2 px-3 text-center">Дубай</th>
+    </tr>
+    <tr class="bg-gray-100">
+      <th class="py-1 px-3">Метрика</th>
+      <th class="py-1 px-3">LY</th>
+      <th class="py-1 px-3 border-r">Δ %</th>
+      <th class="py-1 px-3">LY</th>
+      <th class="py-1 px-3 border-r">Δ %</th>
+      <th class="py-1 px-3">LY</th>
+      <th class="py-1 px-3">Δ %</th>
+    </tr>
+  </thead>
+
+  <tbody class="divide-y">
+    {% for row in dld_sale_rows %}
+      <tr class="{% if row.highlight %}bg-yellow-300{% else %}bg-green-400 text-white{% endif %}">
+        <td class="py-2 px-3">{{ row.label }}</td>
+
+        <td class="py-2 px-3">{{ row.b_val|floatformat:"3"|default:"—" }}</td>
+        <td class="py-2 px-3 border-r">
+          {% if row.b_pct is not None %}{{ row.b_pct|floatformat:"1" }} %{% else %}—{% endif %}
+        </td>
+
+        <td class="py-2 px-3">{{ row.a_val|floatformat:"3"|default:"—" }}</td>
+        <td class="py-2 px-3 border-r">
+          {% if row.a_pct is not None %}{{ row.a_pct|floatformat:"1" }} %{% else %}—{% endif %}
+        </td>
+
+        <td class="py-2 px-3">{{ row.c_val|floatformat:"3"|default:"—" }}</td>
+        <td class="py-2 px-3">
+          {% if row.c_pct is not None %}{{ row.c_pct|floatformat:"1" }} %{% else %}—{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<h2 class="mt-12 mb-4 text-2xl font-bold">DLD Аренда</h2>
+
+<table class="w-full border-collapse table-auto">
+  <thead class="bg-gray-200">
+    <tr>
+      <th class="py-2 px-3"></th>
+      <th colspan="2" class="py-2 px-3 text-center border-r">Билдинг</th>
+      <th colspan="2" class="py-2 px-3 text-center border-r">Район</th>
+      <th colspan="2" class="py-2 px-3 text-center">Дубай</th>
+    </tr>
+    <tr class="bg-gray-100">
+      <th class="py-1 px-3">Метрика</th>
+      <th class="py-1 px-3">LY</th>
+      <th class="py-1 px-3 border-r">Δ %</th>
+      <th class="py-1 px-3">LY</th>
+      <th class="py-1 px-3 border-r">Δ %</th>
+      <th class="py-1 px-3">LY</th>
+      <th class="py-1 px-3">Δ %</th>
+    </tr>
+  </thead>
+
+  <tbody class="divide-y">
+    {% for row in dld_rent_rows %}
+      <tr class="{% if row.highlight %}bg-yellow-300{% else %}bg-green-400 text-white{% endif %}">
+        <td class="py-2 px-3">{{ row.label }}</td>
+
+        <td class="py-2 px-3">{{ row.b_val|floatformat:"3"|default:"—" }}</td>
+        <td class="py-2 px-3 border-r">
+          {% if row.b_pct is not None %}{{ row.b_pct|floatformat:"1" }} %{% else %}—{% endif %}
+        </td>
+
+        <td class="py-2 px-3">{{ row.a_val|floatformat:"3"|default:"—" }}</td>
+        <td class="py-2 px-3 border-r">
+          {% if row.a_pct is not None %}{{ row.a_pct|floatformat:"1" }} %{% else %}—{% endif %}
+        </td>
+
+        <td class="py-2 px-3">{{ row.c_val|floatformat:"3"|default:"—" }}</td>
+        <td class="py-2 px-3">
+          {% if row.c_pct is not None %}{{ row.c_pct|floatformat:"1" }} %{% else %}—{% endif %}
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+</div>
+{% endblock content %}

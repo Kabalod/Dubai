@@ -1,0 +1,15 @@
+# High-level backend dependencies
+# How to use:
+# 1) Edit this file (top-level deps only)
+# 2) Compile lock: `pip-compile -o requirements.compiled.txt requirements.in`
+# 3) CI ensures `pip check` passes and lock matches committed requirements.txt
+# 4) Docker installs from requirements.compiled.txt if present (fallback to requirements.txt)
+django>=4.2
+djangorestframework>=3.15
+django-cors-headers>=4.7
+gunicorn>=21.2
+environs[django]>=9.5
+psycopg[binary]>=3.2
+whitenoise[brotli]>=6.6
+djangorestframework-simplejwt>=5.3
+prometheus-client>=0.21

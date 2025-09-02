@@ -1,0 +1,29 @@
+@use "./typography.scss";
+@use "./tokens.scss";
+
+* {
+    font-family: "Onest", sans-serif;
+}
+
+.divider {
+    border-block-start: 1px solid #e3e6e8;
+}
+
+body,
+header,
+footer,
+main {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    padding: 0 8%;
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New",
+        monospace;
+}

@@ -1,0 +1,180 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <title>Карта зданий</title>
+
+  <!-- Leaflet CSS/JS -->
+  <link
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    rel="stylesheet"
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js">
+  </script>
+
+  <style>
+    html, body, #map { height: 100%; margin: 0; }
+    .leaflet-popup-content h3 { margin: .2em 0 .3em; font-size: 1rem; }
+  </style>
+</head>
+<body>
+<div id="map"></div><!-- Поставьте сразу после <body> -->
+<form id="filter-form" style="position:absolute;z-index:1000;background:#fff;padding:8px;border-radius:6px;box-shadow:0 0 6px rgba(0,0,0,.2);max-width:280px;">
+  <h4 style="margin:0 0 .5em">Фильтр зданий</h4>
+
+  <label>Property type<br>
+    <input name="property_type" type="text">
+  </label><br>
+
+  <label>Min floor<br>
+    <input name="min_floor" type="number" min="0">
+  </label><br>
+
+  <label>Max floor<br>
+    <input name="max_floor" type="number" min="0">
+  </label><br>
+
+  <label>Area_by_pf (id)<br>
+    <input name="area_by_pf_id" type="number" min="1">
+  </label><br>
+
+  <button type="submit">Применить</button>
+  <button type="button" id="reset-btn">Сброс</button>
+</form>
+
+
+<!-- --- GeoJSON (передаём из Django) -------------------------------------- -->
+<script id="buildings-data" type="application/json">
+{{ buildings_geojson|safe }}
+</script>
+<script id="areas-data" type="application/json">
+{{ areas_geojson|safe }}
+</script>
+
+<script>
+// ---------- базовая карта -------------------------------------------------
+const map = L.map('map');
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution:
+      '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+}).addTo(map);
+
+// ---------- слои из GeoJSON ----------------------------------------------
+const buildingsGeo = JSON.parse(
+      document.getElementById('buildings-data').textContent
+);
+const areasGeo = JSON.parse(
+      document.getElementById('areas-data').textContent
+);
+
+// точки
+const buildingsLayer = L.geoJSON(buildingsGeo, {
+    pointToLayer: (feature, latlng) => {
+        return L.marker(latlng, {title: feature.properties.name});
+    },
+    onEachFeature: (feature, layer) => {
+        const p = feature.properties;
+        layer.bindPopup(
+            `<h3>${p.name}</h3>
+             <b>Проект:</b> ${p.project || '—'}<br>
+             <b>Район:</b> ${p.area}`
+        );
+    }
+});
+
+// полигоны районов
+const areasLayer = L.geoJSON(areasGeo, {
+    style: {
+        color: '#3388ff',
+        weight: 2,
+        fillOpacity: 0.12,
+    },
+    onEachFeature: (feature, layer) => {
+        layer.bindPopup(`<b>${feature.properties.name}</b>`);
+    }
+});
+
+// ---------- управление слоями --------------------------------------------
+const overlayMaps = {
+    "Здания": buildingsLayer,
+    "Районы (area_by_pf)": areasLayer
+};
+L.control.layers(null, overlayMaps, {collapsed: false}).addTo(map);
+
+// включаем оба слоя по умолчанию
+areasLayer.addTo(map);
+buildingsLayer.addTo(map);
+
+// ---------- автоподгонка границ ------------------------------------------
+if (buildingsLayer.getLayers().length) {
+    map.fitBounds(buildingsLayer.getBounds(), {padding: [30, 30]});
+} else {
+    map.setView([25.18, 55.27], 10);  // fallback (например, Дубай)
+}
+
+  // ---------- базовая карта -------------------------------------------------
+  const map = L.map('map');
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors'
+  }).addTo(map);
+
+  // ---------- полигоны районов (статич.) ------------------------------------
+  const areasGeo = JSON.parse(
+        document.getElementById('areas-data').textContent
+  );
+  const areasLayer = L.geoJSON(areasGeo, {
+      style: {color:'#3388ff', weight:2, fillOpacity:0.12},
+      onEachFeature: (f,l)=> l.bindPopup(`<b>${f.properties.name}</b>`)
+  }).addTo(map);
+
+  // ---------- динамический слой зданий -------------------------------------
+  let buildingsLayer = L.geoJSON().addTo(map);
+
+  async function loadBuildings(query='') {
+      const resp = await fetch(`/api/buildings.geojson${query}`);
+      const data = await resp.json();
+
+      // обновляем слой
+      buildingsLayer.clearLayers();
+      buildingsLayer.addData(data);
+
+      buildingsLayer.eachLayer(layer => {
+          const p = layer.feature.properties;
+          layer.bindPopup(
+              `<h3>${p.name}</h3>
+               <b>Проект:</b> ${p.project || '—'}<br>
+               <b>Район:</b> ${p.area || '—'}<br>
+               <b>Тип:</b> ${p.property_type || '—'}<br>
+               <b>Этажей:</b> ${p.floor_count ?? '—'}`
+          );
+      });
+
+      // авто‑zoom
+      if (buildingsLayer.getLayers().length) {
+          map.fitBounds(buildingsLayer.getBounds(), {padding:[30,30]});
+      }
+  }
+
+  // ---------- фильтр‑форма --------------------------------------------------
+  const form = document.getElementById('filter-form');
+  form.addEventListener('submit', e => {
+      e.preventDefault();
+      const params = new URLSearchParams(new FormData(form)).toString();
+      loadBuildings(params ? `?${params}` : '');
+  });
+
+  document.getElementById('reset-btn').onclick = () => {
+      form.reset();
+      loadBuildings();          // без параметров
+  };
+
+  // ---------- стартовая загрузка -------------------------------------------
+  loadBuildings();  // без фильтров → все здания
+</script>
+</body><script>
+
+</html>

@@ -1,0 +1,52 @@
+@use "@/styles/typography" as *;
+@use "@/styles/tokens" as *;
+
+.buttonMore {
+    border-radius: 24px;
+    background-color: $bgColorGrey !important;
+    width: 105px;
+    height: 48px;
+}
+
+.arrowUp {
+    transition: all 0.3s ease-in-out;
+    rotate: 180deg;
+}
+
+.wrapper {
+    width: 376px;
+    height: 500px;
+    background-color: $bgColorWhite;
+    border: 1px solid $borderColorDefault;
+    border-radius: 12px;
+    box-shadow: 0px 4px 10px 0px #03030a14;
+    padding: 12px 12px 12px 16px;
+    overflow-y: scroll;
+}
+
+.label {
+    @include body2regular;
+    color: $textColorSecondary;
+    margin-bottom: 6px;
+}
+
+.title {
+    @include body1medium;
+    color: $textColorPrimary;
+    margin-bottom: 12px;
+}
+
+.row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 16px;
+}
+
+.input {
+    @include body1regular;
+    color: $textColorSecondary;
+    height: 48px;
+    border: 1.5px solid $borderColorDefault;
+    border-radius: 14px;
+    background-color: $bgColorGrey;
+}

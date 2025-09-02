@@ -1,0 +1,11 @@
+@use "@/styles/typography" as *;
+
+.pos {
+    @include body1medium;
+    color: $textColorGreen;
+}
+
+.neg {
+    @include body1medium;
+    color: $textColorRed;
+}

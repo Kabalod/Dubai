@@ -1,0 +1,33 @@
+# Build/outputs
+build/
+dist/
+*.tar
+*.gz
+
+# Logs
+*.log
+logs/
+
+# Docker
+*.pid
+*.pid.lock
+**/docker-data/
+**/docker-volumes/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Python caches (if any)
+__pycache__/
+.pytest_cache/
+
+# Node caches (if any)
+node_modules/
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

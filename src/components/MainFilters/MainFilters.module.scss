@@ -1,0 +1,139 @@
+@use "@/styles/typography" as *;
+@use "@/styles/tokens" as *;
+@use "@/styles/spacing" as *;
+
+.container {
+    margin: $spacing-lg 0;
+}
+.midsection {
+    margin-bottom: $spacing-xl;
+}
+
+.firstRow {
+    align-items: flex-start;
+    width: 100%;
+}
+
+.segments {
+    border-radius: var(--radius-xl);
+    height: 48px;
+    display: flex;
+    background-color: $bgColorGrey;
+
+    & :global(.ant-segmented-item) {
+        height: 100%;
+        border-radius: var(--radius-lg);
+        box-shadow: var(--shadow-card);
+
+        & :global(.ant-segmented-item-label) {
+            @include body1medium;
+            padding: 10px 20px;
+
+            &[aria-selected="false"] {
+                color: $textColorGrey;
+            }
+            &:focus-visible {
+                outline: 2px solid rgba(0, 0, 0, 0.1);
+                outline-offset: 2px;
+            }
+        }
+
+        &[aria-checked="true"] {
+            background-color: $bgColorWhite;
+        }
+        &:hover {
+            filter: brightness(0.98);
+        }
+        &[aria-disabled="true"] {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+    }
+}
+
+.selectPropertyWrapper {
+    background-color: aquamarine;
+}
+
+.selectItem {
+    color: red;
+}
+
+.selectProperty {
+    & :global(.ant-select-selector) {
+        border-radius: var(--radius-xl);
+        background-color: $bgColorGrey !important;
+        max-width: 250px;
+        min-width: 120px;
+
+        & :global(.ant-select-selection-wrap) {
+            align-self: center;
+        }
+
+        & :global(.ant-select-selection-item) {
+            border-radius: var(--radius-md) !important;
+
+            & :global(.ant-select-selection-item-content) {
+                @include body1regular;
+            }
+        }
+    }
+}
+
+.expandableFilters {
+    margin-top: $spacing-md;
+    
+    & :global(.ant-collapse-header) {
+        border-radius: var(--radius-lg) !important;
+        background-color: $bgColorGrey;
+        border: none !important;
+    }
+    
+    & :global(.ant-collapse-content-box) {
+        padding: 20px;
+        background-color: $bgColorWhite;
+        border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+    }
+}
+
+.filterCount {
+    color: #3B82F6; /* blue-500 primary color */
+    font-weight: 500;
+    font-size: 12px;
+}
+
+.advancedFiltersContent {
+    .filterRow {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 16px;
+        
+        label {
+            @include body1medium;
+            color: $textColorGrey;
+        }
+    }
+    
+    .filterActions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid $bgColorGrey;
+    }
+}
+
+.searchButton {
+    height: 48px;
+    @include body1medium;
+}
+
+.lastRow {
+    height: 36px;
+}
+
+.periodButton {
+    background-color: $bgColorGrey !important;
+}

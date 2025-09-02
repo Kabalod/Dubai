@@ -1,0 +1,183 @@
+<!-- pfimport/templates/pfimport/pf_listings_table.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>{% if list_type == "sale" %}Listings for Sale{% elif list_type == "rent" %}Listings for Rent{% else %}PF Listings{% endif %}</title>
+    <style>
+        body {
+            background: #2a2a2a;
+            color: #eee;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 2em;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        h1 {
+            margin-top: 0;
+        }
+        .top-menu {
+            margin-bottom: 1em;
+        }
+        .top-menu a {
+            margin-right: 1em;
+            color: #0af;
+            text-decoration: none;
+        }
+        .top-menu a:hover {
+            text-decoration: underline;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            font-size: 0.95em;
+        }
+        th, td {
+            padding: 0.6em;
+            border: 1px solid #444;
+        }
+        th {
+            background: #333;
+        }
+        a {
+            color: #0af;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        /* адаптив: горизонтальный скролл при узком экране */
+        .table-container {
+            overflow-x: auto;
+        }
+        .pagination {
+            margin-top: 1em;
+            text-align: center;
+        }
+        .pagination a, .pagination span {
+            display: inline-block;
+            margin: 0 0.2em;
+            padding: 0.4em 0.8em;
+            border: 1px solid #444;
+            color: #ccc;
+            text-decoration: none;
+        }
+        .pagination a:hover {
+            background: #444;
+        }
+        .current-page {
+            background: #555;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="top-menu">
+        <a href="/">← Home</a>
+        <!-- Можно добавить ссылки -->
+        <a href="{% url 'pf_listings_sale_view' %}">Sale Listings</a>
+        <a href="{% url 'pf_listings_rent_view' %}">Rent Listings</a>
+    </div>
+
+    <h1>
+        {% if list_type == "sale" %}
+            Residential for Sale
+        {% elif list_type == "rent" %}
+            Residential for Rent
+        {% else %}
+            PF Listings
+        {% endif %}
+    </h1>
+
+    <div class="table-container">
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Building</th>
+                <th>Area</th>
+                <th>Added On</th>
+                <th>Price</th>
+                <th>Numeric Area</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in page_obj %}
+            <tr>
+                <td>{{ item.listing_id }}</td>
+                <td>
+                    {% if item.url %}
+                        <a href="{{ item.url }}" target="_blank">{{ item.title|default:"(No title)" }}</a>
+                    {% else %}
+                        {{ item.title|default:"(No title)" }}
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.building %}
+                        {{ item.building.name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.building and item.building.area %}
+                        {{ item.building.area.name }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.added_on %}
+                        {{ item.added_on|date:"Y-m-d H:i" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.price %}
+                        {{ item.price }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>
+                    {% if item.numeric_area %}
+                        {{ item.numeric_area }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+            </tr>
+        {% empty %}
+            <tr>
+                <td colspan="7">No listings found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    </div>
+
+    <!-- Пагинация -->
+    <div class="pagination">
+        {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}">« Prev</a>
+        {% endif %}
+        {% for p in page_obj.paginator.page_range %}
+            {% if page_obj.number == p %}
+                <span class="current-page">{{ p }}</span>
+            {% else %}
+                <a href="?page={{ p }}">{{ p }}</a>
+            {% endif %}
+        {% endfor %}
+        {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">Next »</a>
+        {% endif %}
+    </div>
+</div>
+</body>
+</html>

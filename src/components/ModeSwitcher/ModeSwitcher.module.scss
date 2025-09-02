@@ -1,0 +1,91 @@
+@use "@/styles/typography" as *;
+
+.container {
+    width: 100%;
+    margin: 50px 0;
+}
+
+.wrapper {
+    border: 1px solid #e3e6e8;
+    border-radius: 24px;
+    padding: 16px;
+    min-width: 200px;
+}
+.wrapperSelected {
+    border: 1px solid #335cff;
+    border-radius: 24px;
+    padding: 16px;
+    min-width: 200px;
+}
+
+.radioRow {
+    height: 32px;
+    margin-bottom: 32px;
+    justify-content: space-between;
+}
+
+.menu {
+    border-bottom: 0;
+    line-height: 24px;
+    & :global(.ant-menu-item) {
+        @include body1regular;
+        color: $textColorPrimary;
+    }
+    &:global(.ant-menu-overflow) {
+        width: 100%;
+    }
+}
+
+.title {
+    @include title3medium;
+    color: $textColorBlack;
+}
+
+.subtext {
+    @include body2regular;
+    color: $textColorGrey;
+}
+
+.blueRadio {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+
+    & :global(.ant-radio) {
+        display: none;
+    }
+    & :global(.ant-radio) + span {
+        display: inline-flex;
+    }
+
+    & :global(.ant-radio) + span::before {
+        content: "";
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 1px solid #e3e6e8; // Default blue border
+        background-color: white;
+        transition: all 0.3s ease-in-out;
+        margin-right: 10px;
+    }
+
+    & :global(.ant-radio-checked) + span::before {
+        background-color: #335cff; // Blue background when checked
+        content: "✔"; // Unicode checkmark
+        color: white;
+        border: 1px solid #335cff; // Default blue border
+        font-size: 16px;
+        font-weight: 400;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-right: 10px;
+    }
+
+    & :global(.ant-radio-wrapper) {
+        display: flex;
+        align-items: center; // Ensures the radio and text align properly
+        gap: 8px; // Optional: Adds spacing between the radio and label
+    }
+}

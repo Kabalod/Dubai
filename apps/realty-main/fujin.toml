@@ -1,0 +1,40 @@
+app = "realty"
+build_command = "uv build && uv pip compile pyproject.toml -o requirements.txt"
+distfile = "dist/realty-{version}-py3-none-any.whl"
+requirements = "requirements.txt"
+release_command = "realty setup"
+installation_mode = "python-package"
+python_version = "3.12"
+
+[secrets]
+adapter = "system"
+
+[webserver]
+upstream = "localhost:8000"
+type = "fujin.proxies.caddy"
+
+[processes]
+web = ".venv/bin/realty prodserver --workers 4"
+worker = ".venv/bin/realty db_worker"
+worker2 = ".venv/bin/realty db_worker"
+
+[aliases]
+console = "app exec -i shell_plus"
+dbconsole = "app exec -i dbshell"
+print_settings = "app exec print_settings --format=pprint"
+shell = "server exec --appenv -i bash"
+
+[host]
+user = "fujin"
+domain_name = "dev.dubai36.online"
+env = """
+DEBUG=False
+ALLOWED_HOSTS=main.dubai36.online,dev.dubai36.online
+SECRET_KEY=$SECRET_KEY
+DJANGO_SUPERUSER_EMAIL=admin@localhost
+DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD
+DJANGO_SUPERUSER_USERNAME=admin
+USE_LITESTREAM=False
+DATABASE_URL=$DATABASE_URL
+MEDIA_ROOT="/home/fujin/.local/share/fujin/realty/media"
+"""

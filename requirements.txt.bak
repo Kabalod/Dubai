@@ -1,0 +1,15 @@
+# Railway requirements for Dubai MVP v3.3
+# Version: 3.3 - Minimal dependencies only
+# Build: 2025-08-25 - Railway deployment ready - MINIMAL BUILD
+
+# Core Django - only essential packages
+django==4.2.7
+gunicorn==23.0.0
+
+# Environment configuration - CRITICAL
+environs==9.5.0
+
+# Database - CRITICAL
+psycopg[binary]==3.2.0
+
+# Force minimal rebuild - remove all optional packages

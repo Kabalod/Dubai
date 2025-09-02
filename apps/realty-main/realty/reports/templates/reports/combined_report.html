@@ -1,0 +1,209 @@
+{# realty/reports/templates/reports/combined_report.html #}
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<h1 class="mb-8 text-3xl font-bold">Комбинированный отчёт</h1>
+
+{# -------------------------------------------------------------- #}
+{# FORM #1  – выбор здания + комнатности (Building/Area/City/DLD) #}
+{# -------------------------------------------------------------- #}
+<form id="buildingForm"
+      class="flex flex-wrap gap-4 items-end p-4 mb-10 bg-gray-50 rounded-lg border">
+
+  {% csrf_token %}
+  <div class="w-full sm:w-1/2 lg:w-1/3">
+    <label for="building" class="block text-sm font-medium text-gray-700">Здание</label>
+    <select id="building" name="building"
+            class="block mt-1 w-full rounded-md border-gray-300 shadow-sm">
+      <option value="" disabled selected>— выберите здание —</option>
+      {% for b in buildings %}
+        <option value="{{ b.pk }}">{{ b.name }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="w-full sm:w-1/3 lg:w-1/5">
+    <label for="bdr" class="block text-sm font-medium text-gray-700">Комнатность</label>
+    <select id="bdr" name="bedrooms"
+            class="block mt-1 w-full rounded-md border-gray-300 shadow-sm">
+      <option value="" disabled selected>— выберите —</option>
+      {% for k,l in bedroom_choices %}
+        <option value="{{ k }}">{{ l }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <button type="submit"
+          class="py-2 px-6 text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+    Показать
+  </button>
+</form>
+
+<div id="buildingSection" class="mb-16"></div>
+
+<hr class="my-12">
+
+{# ---------------------------------------------- #}
+{# FORM #2  – выбор района + комнатности (Area) #}
+{# ---------------------------------------------- #}
+<form id="areaForm"
+      class="flex flex-wrap gap-4 items-end p-4 mb-10 bg-gray-50 rounded-lg border">
+  <div class="w-full sm:w-1/2 lg:w-1/3">
+    <label for="area" class="block text-sm font-medium text-gray-700">Район</label>
+    <select id="area" name="area"
+            class="block mt-1 w-full rounded-md border-gray-300 shadow-sm">
+      <option value="" disabled selected>— выберите район —</option>
+      {% for a in areas %}
+        <option value="{{ a.pk }}">{{ a.name_en }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <div class="w-full sm:w-1/3 lg:w-1/5">
+    <label for="bdr2" class="block text-sm font-medium text-gray-700">Комнатность</label>
+    <select id="bdr2" name="bedrooms"
+            class="block mt-1 w-full rounded-md border-gray-300 shadow-sm">
+      <option value="" disabled selected>— выберите —</option>
+      {% for k,l in bedroom_choices %}
+        <option value="{{ k }}">{{ l }}</option>
+      {% endfor %}
+    </select>
+  </div>
+
+  <button type="submit"
+          class="py-2 px-6 text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+    Показать
+  </button>
+</form>
+
+<div id="areaSection" class="mb-16"></div>
+
+<hr class="my-12">
+
+{# ---------------------------------------------------------- #}
+{# DLD-таблица (годовое сравнение) — строится на let-массивах #}
+{# ---------------------------------------------------------- #}
+<div id="dldSection" class="mb-16"></div>
+
+{# ============================== #}
+{# JS – фетчим REST и рисуем DOM #}
+{# ============================== #}
+<script>
+/* маленькие хелперы */
+const qs      = sel => document.querySelector(sel);
+const percent = (curr, prev) =>
+        prev && prev !== 0 ? ((curr - prev) / prev * 100).toFixed(2) + '%' : '—';
+
+/* -------- BUILDING / AREA / CITY / DLD aggregated ---------- */
+qs('#buildingForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const building  = qs('#building').value;
+  const bedrooms  = qs('#bdr').value;
+  if (!building || !bedrooms) return;
+
+  const url = `/r2d2/api/aggregated/?building=${building}&bedrooms=${bedrooms}`;
+  const res = await fetch(url);
+  if (!res.ok) { qs('#buildingSection').innerHTML = '<p class="text-red-600">Нет данных</p>'; return;}
+  const data = await res.json();
+
+  /* -------- «большая» таблица (частично из tailwind_report.html) -------- */
+  qs('#buildingSection').innerHTML = `
+    <h2 class="mb-4 text-2xl font-bold">${data.building.name} / ${bedrooms} BR</h2>
+
+    <table class="mb-10 w-full text-left border-collapse table-auto">
+      <thead><tr class="bg-gray-100">
+        <th class="py-2 px-4">Метрика</th>
+        <th class="py-2 px-4">Building</th>
+        <th class="py-2 px-4">Area</th>
+        <th class="py-2 px-4">Dubai</th></tr>
+      </thead>
+      <tbody class="divide-y">
+        ${['avg_sale_price','median_sale_price','min_sale_price','max_sale_price',
+           'sale_count','avg_exposure_sale_days','sale_per_unit_ratio','roi'].map(k=>{
+            return `<tr>
+              <td class="py-2 px-4">${k.replace(/_/g,' ')}</td>
+              <td class="py-2 px-4">${data.building_report[k] ?? '—'}</td>
+              <td class="py-2 px-4">${data.area_report[k]     ?? '—'}</td>
+              <td class="py-2 px-4">${data.city_report[k==='roi'?'avg_roi':'avg_'+k] ?? '—'}</td>
+            </tr>`
+        }).join('')}
+      </tbody>
+    </table>
+  `;
+
+  /* -------------------- DLD annual change table -------------------- */
+  const d = data.dld_report;
+  const metrics = [
+    ['avg_sale_price','Средняя цена продажи'],
+    ['avg_rent_price','Средняя цена аренды'],
+    ['avg_sqm_sale','Средняя площадь продажи'],
+    ['avg_sqm_rent','Средняя площадь аренды'],
+    ['avg_ppsqm_sale','Цена за м² (продажа)'],
+    ['avg_ppsqm_rent','Цена за м² (аренда)'],
+    ['roi','ROI'],
+  ];
+  qs('#dldSection').innerHTML = `
+    <h3 class="mb-4 text-2xl font-semibold">DLD Building Report (годовое изменение)</h3>
+    <table class="w-full text-left border-collapse table-auto">
+      <thead><tr class="bg-gray-100">
+        <th class="py-2 px-4">Метрика</th>
+        <th class="py-2 px-4">LY</th>
+        <th class="py-2 px-4">PY</th>
+        <th class="py-2 px-4">Δ%</th></tr>
+      </thead>
+      <tbody class="divide-y">
+      ${metrics.map(([slug,label])=>{
+          const ly = d[slug+'_ly'];  const py = d[slug+'_py'];
+          if (ly==null && py==null) return '';
+          return `<tr>
+            <td class="py-2 px-4">${label}</td>
+            <td class="py-2 px-4">${ly ?? '—'}</td>
+            <td class="py-2 px-4">${py ?? '—'}</td>
+            <td class="py-2 px-4">${ly!=null && py!=null ? percent(ly,py) : '—'}</td>
+          </tr>`;
+      }).join('')}
+      </tbody>
+    </table>
+  `;
+});
+
+/* ---------------------- AREA report ---------------------- */
+qs('#areaForm').addEventListener('submit', async e=>{
+  e.preventDefault();
+  const area     = qs('#area').value;
+  const bedrooms = qs('#bdr2').value;
+  if (!area || !bedrooms) return;
+
+  const url = `/r2d2/api/area/?area=${area}&bedrooms=${bedrooms}`;
+  const res = await fetch(url);
+  if (!res.ok) { qs('#areaSection').innerHTML='<p class="text-red-600">Нет данных</p>'; return;}
+  const r = await res.json();
+
+  qs('#areaSection').innerHTML = `
+    <h2 class="mb-4 text-2xl font-bold">${r.area.english_name} / ${bedrooms} BR</h2>
+    <p class="mb-4 text-sm text-gray-500">Дата расчёта: ${r.calculated_at?.slice(0,16).replace('T',' ')}</p>
+
+    <table class="mb-8 w-full text-left border-collapse table-auto">
+      <thead><tr class="bg-gray-100"><th class="py-2 px-4">Метрика</th><th class="py-2 px-4">Значение</th></tr></thead>
+      <tbody class="divide-y">
+        ${['avg_sale_price_ly','median_sale_price_ly','min_sale_price_ly','max_sale_price_ly',
+           'avg_sqm_sale_ly','avg_ppsqm_sale_ly','avg_tx_per_building_ly','avg_roi_by_building_ly']
+           .map(k=>`<tr><td class="py-2 px-4">${k.replace(/_/g,' ')}</td><td class="py-2 px-4">${r[k] ?? '—'}</td></tr>`).join('')}
+      </tbody>
+    </table>
+
+    <h3 class="mb-2 text-xl font-semibold">3 последние продажи</h3>
+    <ul class="mb-4 list-disc list-inside">
+      ${(r.last_3_sales||[]).map(t=>`<li>${t.date} — ${t.price} AED / ${t.sqm} м²</li>`).join('') || '<li>— нет данных —</li>'}
+    </ul>
+
+    <h3 class="mb-2 text-xl font-semibold">3 последние аренды</h3>
+    <ul class="list-disc list-inside">
+      ${(r.last_3_rents||[]).map(t=>`<li>${t.date} — ${t.price} AED / ${t.sqm} м²</li>`).join('') || '<li>— нет данных —</li>'}
+    </ul>
+  `;
+});
+</script>
+
+{% endblock content %}

@@ -1,0 +1,32 @@
+# Normalize line endings
+* text=auto
+
+# Prefer LF for source/config/docs
+*.md   text eol=lf
+*.txt  text eol=lf
+*.py   text eol=lf
+*.js   text eol=lf
+*.jsx  text eol=lf
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.json text eol=lf
+*.yml  text eol=lf
+*.yaml text eol=lf
+*.sh   text eol=lf
+*.go   text eol=lf
+*.java text eol=lf
+*.css  text eol=lf
+*.scss text eol=lf
+*.html text eol=lf
+
+# Keep CRLF for Windows scripts
+*.ps1  text eol=crlf
+*.bat  text eol=crlf
+
+# Binary files
+*.png  binary
+*.jpg  binary
+*.jpeg binary
+*.ico  binary
+*.pdf  binary
+*.zip  binary

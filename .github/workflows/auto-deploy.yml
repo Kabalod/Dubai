@@ -1,0 +1,228 @@
+name: 🤖 Automated Railway Deployment
+
+on:
+  push:
+    branches: [ prod ]
+  pull_request:
+    branches: [ prod ]
+  workflow_dispatch:
+    inputs:
+      force_deploy:
+        description: 'Force deployment even if checks fail'
+        required: false
+        default: 'false'
+
+env:
+  RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+
+jobs:
+  comprehensive-check:
+    name: 🔍 Comprehensive Project Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🐍 Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+        
+    - name: 📦 Install Python dependencies for analysis
+      run: |
+        pip install --upgrade pip
+        pip install ast-grep bandit safety
+        
+    - name: 🔍 Analyze Python imports
+      run: |
+        echo "🐍 Analyzing Python imports..."
+        find realty -name "*.py" -exec grep -H "^from\|^import" {} \; > imports.txt
+        echo "Found $(wc -l < imports.txt) import statements"
+        
+    - name: 🐳 Validate Dockerfile
+      run: |
+        echo "🐳 Validating Dockerfile..."
+        if [ -f "Dockerfile.railway" ]; then
+          echo "✅ Railway Dockerfile found"
+        else
+          echo "❌ Railway Dockerfile missing"
+          exit 1
+        fi
+        
+        if [ -f "apps/DXB-frontend-develop/Dockerfile" ]; then
+          echo "✅ Frontend Dockerfile found"
+        else
+          echo "❌ Frontend Dockerfile missing"
+          exit 1
+        fi
+        
+    - name: ⚙️ Check Django settings
+      run: |
+        echo "⚙️ Checking Django settings..."
+        python -c "
+        import re
+        with open('realty/settings.py', 'r') as f:
+            content = f.read()
+            
+        # Check for problematic imports
+        problematic = ['from falco', 'from realty.pfimport', 'from realty.reports']
+        issues = []
+        
+        for pattern in problematic:
+            if re.search(pattern, content) and not re.search(f'#{pattern}', content):
+                issues.append(f'Found uncommented: {pattern}')
+                
+        if issues:
+            print('❌ Django settings issues:')
+            for issue in issues:
+                print(f'  {issue}')
+            exit(1)
+        else:
+            print('✅ Django settings look good')
+        "
+        
+    - name: 📊 Generate report
+      run: |
+        echo "📊 Generating comprehensive report..."
+        echo "## 🔍 Comprehensive Check Report" > check-report.md
+        echo "- **Python files analyzed:** $(find realty -name '*.py' | wc -l)" >> check-report.md
+        echo "- **Import statements:** $(wc -l < imports.txt)" >> check-report.md
+        echo "- **Dockerfile status:** ✅ Valid" >> check-report.md
+        echo "- **Django settings:** ✅ Clean" >> check-report.md
+        
+    - name: 📤 Upload report
+      uses: actions/upload-artifact@v3
+      with:
+        name: comprehensive-check-report
+        path: check-report.md
+
+  railway-deploy:
+    name: 🚂 Railway Deployment
+    needs: comprehensive-check
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/prod' || github.event.inputs.force_deploy == 'true'
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🚂 Install Railway CLI
+      run: |
+        curl -fsSL https://railway.com/install.sh | sh
+        echo "$HOME/.railway/bin" >> $GITHUB_PATH
+        
+    - name: 🔐 Railway Login
+      run: |
+        echo "$RAILWAY_TOKEN" | railway login --token
+        
+    - name: 🚀 Deploy to Railway
+      run: |
+        # Link to existing project or create new one
+        if [ -n "$RAILWAY_PROJECT_ID" ]; then
+          railway link $RAILWAY_PROJECT_ID
+        else
+          echo "Creating new Railway project..."
+          railway init --name "dubai-mvp-backend"
+        fi
+        
+        # Deploy using the railway.json configuration
+        railway up
+        
+    - name: ⏳ Wait for deployment
+      run: |
+        echo "⏳ Waiting for deployment to complete..."
+        sleep 120
+        
+    - name: 🏥 Health check
+      run: |
+        echo "🏥 Checking backend health..."
+        max_attempts=10
+        attempt=1
+        
+        # Get the deployment URL from Railway
+        DEPLOYMENT_URL=$(railway status --json | jq -r '.services[0].url // empty')
+        
+        if [ -z "$DEPLOYMENT_URL" ]; then
+          echo "❌ Could not get deployment URL"
+          exit 1
+        fi
+        
+        echo "Testing health at: $DEPLOYMENT_URL/health/"
+        
+        while [ $attempt -le $max_attempts ]; do
+          echo "Attempt $attempt/$max_attempts..."
+          
+          if curl -f -s "$DEPLOYMENT_URL/health/" > /dev/null; then
+            echo "✅ Backend is healthy!"
+            curl -s "$DEPLOYMENT_URL/health/" | jq .
+            break
+          else
+            echo "❌ Backend not responding, waiting..."
+            sleep 30
+            attempt=$((attempt + 1))
+          fi
+        done
+        
+        if [ $attempt -gt $max_attempts ]; then
+          echo "❌ Backend health check failed after $max_attempts attempts"
+          exit 1
+        fi
+
+  integration-test:
+    name: 🧪 Integration Testing
+    needs: railway-deploy
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: 📥 Checkout code
+      uses: actions/checkout@v4
+      
+    - name: 🚂 Install Railway CLI
+      run: |
+        curl -fsSL https://railway.com/install.sh | sh
+        echo "$HOME/.railway/bin" >> $GITHUB_PATH
+        
+    - name: 🔐 Railway Login
+      run: |
+        echo "$RAILWAY_TOKEN" | railway login --token
+        
+    - name: 🧪 Test API endpoints
+      run: |
+        echo "🧪 Testing API endpoints..."
+        
+        # Get the deployment URL
+        railway link
+        DEPLOYMENT_URL=$(railway status --json | jq -r '.services[0].url // empty')
+        
+        if [ -z "$DEPLOYMENT_URL" ]; then
+          echo "❌ Could not get deployment URL"
+          exit 1
+        fi
+        
+        echo "Testing API at: $DEPLOYMENT_URL"
+        
+        # Test health endpoint
+        if curl -f -s "$DEPLOYMENT_URL/health/" > /dev/null; then
+          echo "✅ Health endpoint working"
+        else
+          echo "❌ Health endpoint failed"
+          exit 1
+        fi
+        
+        # Test admin endpoint
+        if curl -f -s "$DEPLOYMENT_URL/admin/" > /dev/null; then
+          echo "✅ Admin endpoint accessible"
+        else
+          echo "❌ Admin endpoint failed"
+          exit 1
+        fi
+        
+    - name: 📊 Final report
+      run: |
+        echo "📊 Integration test completed successfully!"
+        echo "🎉 Deployment is ready for production use!"
+        echo ""
+        echo "🔗 Backend API: $DEPLOYMENT_URL"
+        echo "🔗 Health Check: $DEPLOYMENT_URL/health/"
+        echo "🔗 Admin Panel: $DEPLOYMENT_URL/admin/"

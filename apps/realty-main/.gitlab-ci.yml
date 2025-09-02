@@ -1,0 +1,70 @@
+stages:
+ # - prod_deploy
+  - dev_realty
+  - prod_realty
+
+# ansible
+# prod_deploy:
+#   stage: prod_deploy
+#   tags:
+#     - prod_deploy
+#   script:
+#     - sudo rsync -a $PWD/ /home/panchuk35/realty/
+#   only:
+#     - main
+
+# git branch dev
+dev_realty:
+  stage: dev_realty
+  tags:
+    - dev_realty
+  script:
+    - sudo rsync -a $PWD/ /home/panchuk35/realty/
+    - cd /home/panchuk35/realty
+
+    - rm -f .env.prod
+    - touch .env.prod
+    - echo "DEBUG=False" >> .env.prod
+    - echo "ALLOWED_HOSTS=dev.propertix.ai" >> .env.prod
+    - echo "SECRET_KEY=OGjvA7772Nb0MaqdWpRSNPsFC3uPpOHuF7c0pPMH1+0=" >> .env.prod
+    - echo "DJANGO_SUPERUSER_EMAIL=admin@gmail.com" >> .env.prod
+    - echo "DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD" >> .env.prod
+    - echo "DJANGO_SUPERUSER_USERNAME=admin" >> .env.prod
+    - echo "USE_LITESTREAM=False" >> .env.prod
+    - echo "DATABASE_URL=postgres://postgres:$POSTGRES_PASSWORD@db:5432/realty" >> .env.prod
+    - echo "POSTGRES_DB=realty" >> .env.prod
+    - echo "POSTGRES_USER=postgres" >> .env.prod
+    - echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env.prod
+
+    - sudo docker compose --profile prod build #--no-cache
+    - sudo docker compose --profile prod up -d --force-recreate
+  only:
+    - dev
+
+# git branch main
+prod_realty:
+  stage: prod_realty
+  tags:
+    - prod_realty
+  script:
+    - sudo rsync -a $PWD/ /home/panchuk35/realty/
+    - cd /home/panchuk35/realty
+
+    - rm -f .env.prod
+    - touch .env.prod
+    - echo "DEBUG=False" >> .env.prod
+    - echo "ALLOWED_HOSTS=app.propertix.ai" >> .env.prod
+    - echo "SECRET_KEY=OGjvA7772Nb0MaqdWpRSNPsFC3uPpOHuF7c0pPMH1+0=" >> .env.prod
+    - echo "DJANGO_SUPERUSER_EMAIL=admin@gmail.com" >> .env.prod
+    - echo "DJANGO_SUPERUSER_PASSWORD=$DJANGO_SUPERUSER_PASSWORD" >> .env.prod
+    - echo "DJANGO_SUPERUSER_USERNAME=admin" >> .env.prod
+    - echo "USE_LITESTREAM=False" >> .env.prod
+    - echo "DATABASE_URL=postgres://postgres:$POSTGRES_PASSWORD@db:5432/realty" >> .env.prod
+    - echo "POSTGRES_DB=realty" >> .env.prod
+    - echo "POSTGRES_USER=postgres" >> .env.prod
+    - echo "POSTGRES_PASSWORD=$POSTGRES_PASSWORD" >> .env.prod
+
+    - sudo docker compose --profile prod build #--no-cache
+    - sudo docker compose --profile prod up -d --force-recreate
+  only:
+    - main

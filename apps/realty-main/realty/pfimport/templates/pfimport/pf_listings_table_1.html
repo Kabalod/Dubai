@@ -1,0 +1,237 @@
+<!-- pfimport/templates/pfimport/pf_listings_table.html -->
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Property Finder Listings</title>
+    <style>
+        body {
+            background: #2a2a2a;
+            color: #eee;
+            font-family: sans-serif;
+            margin: 0;
+            padding: 2em;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1em;
+            font-size: 0.95em;
+        }
+        th, td {
+            padding: 0.5em;
+            border: 1px solid #444;
+            vertical-align: top;
+        }
+        th {
+            background: #333;
+        }
+        a {
+            color: #0af;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .top-menu {
+            margin-bottom: 1em;
+        }
+        .top-menu a {
+            margin-right: 1em;
+        }
+        .muted {
+            color: #aaa;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="top-menu">
+        <a href="/">← Back to Rental Transactions</a>
+    </div>
+    <h1>Property Finder Listings</h1>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Reference</th>
+                <th>Id</th>
+                <th>URL</th>
+                <th>Bedrooms</th>
+                <th>Added On</th>
+                <th>Days on Market</th>
+                <th>Avg Days in Bld</th>
+                <th>Avg Days in Area</th>
+                <th>Property Type</th>
+                <th>Price Duration</th>
+                <th>Type</th>
+                <th>Size Min</th>
+                <th>Площадь (число)</th>
+                <th>Price</th>
+                <th>Price/sqft</th>
+                <th>Price/sqft Bld (avg)</th>
+                <th>Разница</th>
+                <th>Furnishing</th>
+                <th>Agent number</th>
+                <th>Description</th>
+                <th>Title</th>
+                <th>Address (full)</th>
+                <th>Адрес 1 (здание)</th>
+                <th>Адрес 2</th>
+                <th>Адрес 3 (район)</th>
+                <th>Адрес 4</th>
+                <th>Ср знач (в объявл.) / здание / br</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for row in listings %}
+            {# row["obj"] = PFListing, row["address1"], ... #}
+            {% with obj=row.obj %}
+            <tr>
+                <td>{{ obj.reference|default:"-" }}</td>
+                <td>{{ obj.listing_id }}</td>
+                <td>
+                    {% if obj.url %}
+                        <a href="{{ obj.url }}" target="_blank">link</a>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+                <td>{{ obj.bedrooms|default:"-" }}</td>
+
+                <!-- Added On -->
+                <td>
+                    {% if obj.added_on %}
+                        {{ obj.added_on|date:"Y-m-d" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- Days on market -->
+                <td>
+                    {% if row.days_on_market is not None %}
+                        {{ row.days_on_market }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- Avg Days in building -->
+                <td>
+                    {% if row.avg_bld_days_on_market %}
+                        {{ row.avg_bld_days_on_market|floatformat:1 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- Avg Days in area -->
+                <td>
+                    {% if row.avg_area_days_on_market %}
+                        {{ row.avg_area_days_on_market|floatformat:1 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- Property Type -->
+                <td>{{ obj.property_type|default:"-" }}</td>
+                <!-- Price Duration -->
+                <td>{{ obj.price_duration|default:"-" }}</td>
+                <!-- Listing Type -->
+                <td>{{ obj.listing_type|default:"-" }}</td>
+
+                <!-- Size Min -->
+                <td>{{ obj.size_min|default:"-" }}</td>
+                <!-- numeric_area -->
+                <td>
+                    {% if obj.numeric_area %}
+                        {{ obj.numeric_area|floatformat:0 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- Price -->
+                <td>
+                    {% if obj.price %}
+                        {{ obj.price }} {{ obj.price_currency|default:"AED" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- price_per_sqft -->
+                <td>
+                    {% if row.price_per_sqft %}
+                        {{ row.price_per_sqft|floatformat:2 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- avg_bld_price_per_sqft -->
+                <td>
+                    {% if row.avg_bld_price_per_sqft %}
+                        {{ row.avg_bld_price_per_sqft|floatformat:2 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- Разница -->
+                <td>
+                    {% if row.diff_price_per_sqft %}
+                        {{ row.diff_price_per_sqft|floatformat:2 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <!-- Furnishing -->
+                <td>{{ obj.furnishing|default:"-" }}</td>
+                <!-- Agent number -->
+                <td>{{ obj.agent_phone|default:"-" }}</td>
+
+                <!-- Description -->
+                <td>
+                    {% if obj.description %}
+                        <div style="max-width:300px; overflow:auto; max-height:6em;">
+                            {{ obj.description }}
+                        </div>
+                    {% else %}
+                        -
+                    {% endif %}
+                </td>
+
+                <td>{{ obj.title|default:"-" }}</td>
+
+                <!-- Address (full) -->
+                <td>{{ obj.display_address|default:"-" }}</td>
+                <!-- Address 1..4 -->
+                <td>{{ row.address1 }}</td>
+                <td>{{ row.address2 }}</td>
+                <td>{{ row.address3 }}</td>
+                <td>{{ row.address4 }}</td>
+
+                <!-- Ср знач по объявления / здание / br (placeholder) -->
+                <td class="muted">
+                    (можно дополнительно сгруппировать по bld+bedroom и вывести avg)
+                </td>
+            </tr>
+            {% endwith %}
+        {% empty %}
+            <tr>
+                <td colspan="27">No PF listings found</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

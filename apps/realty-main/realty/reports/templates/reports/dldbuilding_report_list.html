@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+  <h1>DLD Building Reports</h1>
+  <form method="get" class="filter-form">
+    {{ form.english_name.label_tag }} {{ form.english_name }}
+    {{ form.bedrooms.label_tag }}     {{ form.bedrooms }}
+    <button type="submit">Filter</button>
+  </form>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Building</th>
+        <th>Bedrooms</th>
+        <th>Calculated at</th>
+        <th>View</th>
+      </tr>
+    </thead>
+    <tbody>
+      {# Переменная reports из контекста #}
+      {% for report in reports %}
+        <tr>
+          {# report — это один из элементов reports #}
+          <td>{{ report.dld_building.english_name }}</td>
+          <td>{{ report.get_bedrooms_display }}</td>
+          <td>{{ report.calculated_at|date:"Y-m-d H:i" }}</td>
+          <td>
+            <a href="{% url 'reports:dldbuilding_report_detail' report.pk %}">
+              View
+            </a>
+          </td>
+        </tr>
+      {% empty %}
+        <tr>
+          <td colspan="4">No reports found.</td>
+        </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endblock content %}

@@ -1,0 +1,243 @@
+{# templates/pfimport/pf_listings_table.html  ·  v3.1  (25 May 2025) #}
+<!DOCTYPE html>
+<html lang="ru" class="no-ani">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ list_type }}</title>
+
+<!-- Leaflet -->
+<link rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      crossorigin="anonymous">
+<script defer
+        src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        crossorigin="anonymous"></script>
+
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Roboto+Mono:wght@400;700&display=swap"
+      rel="stylesheet">
+
+<style>
+/*  ─────────── стили остались прежними (с небольшой чисткой) ───────────  */
+:root{--bg:#0d0d0d;--card:#141414;--text:#f3f3f3;--accent:#ff0055;--accent-2:#00e3ff;--border:4px;--font-head:'Space Grotesk',sans-serif;--font-body:'Roboto Mono',monospace;}
+*{box-sizing:border-box;margin:0;padding:0}html,body{height:100%;background:var(--bg);color:var(--text)}body{font-family:var(--font-body);line-height:1.45;-webkit-font-smoothing:antialiased;padding:2vw;overflow-x:hidden}
+h1,h2,h3,h4{font-family:var(--font-head);font-weight:700;letter-spacing:-.02em}
+a{color:var(--accent-2);text-decoration:none;position:relative;transition:color .2s}
+a::after{content:"";position:absolute;left:0;bottom:-2px;width:100%;height:1px;background:var(--accent-2);transform-origin:right;transform:scaleX(0);transition:transform .25s cubic-bezier(.55,0,.1,1)}
+a:hover{color:var(--accent)}a:hover::after{transform-origin:left;transform:scaleX(1)}
+.wrapper{max-width:100%;margin-inline:auto;display:flex;flex-direction:column;gap:3rem}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:2rem;flex-wrap:wrap}
+.brand{font-size:clamp(1.6rem,5vw,2.8rem);line-height:1;border:var(--border) solid var(--accent);padding:.54em .6em;border-radius:1rem 0 0 0;height:272px}
+.nav{display:flex;gap:1.4rem}
+.nav a{font-weight:600;padding:.4em 1em;border:var(--border) solid var(--accent);background:var(--card);transition:background .2s}
+.nav a:hover{background:var(--accent);color:var(--bg)}
+.filter{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:1rem;border:var(--border) solid var(--accent);padding:1.5rem;background:var(--card)}
+.filter label{display:flex;flex-direction:column;font-size:.75rem;gap:.4rem}
+.filter input,.filter select{padding:.55rem .7rem;border:var(--border) solid var(--accent-2);background:none;color:var(--text);font:inherit}
+.filter input:focus,.filter select:focus{outline:none;border-color:var(--accent)}
+.filter button{grid-column:1/-1;justify-self:end;padding:.6rem 1.6rem;font-weight:700;border:var(--border) solid var(--accent);background:var(--accent);color:var(--bg);cursor:pointer;transition:transform .2s;font-size:.99rem}
+.filter button:hover{transform:translateY(-2px)}
+.table-wrap{border:var(--border) solid var(--accent);overflow-x:auto;max-width:100vw}
+table{width:100%;table-layout:fixed;border-collapse:collapse}
+th,td{padding:.8rem .6rem;text-align:left;font-size:1rem;white-space:normal;word-break:break-word;border-bottom:1px solid var(--accent-2)}
+th{font-family:var(--font-head);position:sticky;top:0;background:var(--bg)}
+tr:hover{background:#1b1b1b}
+.pagination{display:flex;justify-content:center;gap:.6rem;flex-wrap:wrap}
+.pagination a,.pagination span{padding:.4em 1em;border:var(--border) solid var(--accent);background:var(--card);font-weight:600}
+.pagination a:hover{background:var(--accent);color:var(--bg)}.current{background:var(--accent);color:var(--bg)}
+#map-box{position:fixed;top:2vw;right:2vw;width:72%;height:272px;border:var(--border) solid var(--accent);border-radius:0 1rem 0 0;overflow:hidden;z-index:1000;background:var(--card)}
+#map-box.is-full{width:96vw;height:96vh;top:2vh;right:2vw;border:none}
+#map{width:100%;height:100%}
+#map-toggle{position:absolute;bottom:.6rem;right:.6rem;width:36px;height:36px;border:none;border-radius:50%;background:var(--accent-2);color:var(--bg);font-weight:700;cursor:pointer;z-index:1001}
+#map-toggle:hover{transform:scale(1.15)}#map-box.is-full #map-toggle{background:var(--bg);color:var(--accent)}
+td small{font-size:.8em;color:var(--accent);font-style:italic}.double-paren{font-size:.6em;color:var(--accent-2)}
+@media(max-width:1200px){#map-box{width:420px;height:220px}}
+@media(max-width:900px){.topbar{flex-direction:column;align-items:flex-start;gap:1rem}.nav{gap:.8rem}#map-box{position:relative;top:auto;right:auto;width:100%;height:45vh;margin-top:1.5rem;border-radius:1rem}}
+@media(max-width:600px){body{padding:4vw}.brand{font-size:1.6rem}.filter{grid-template-columns:1fr;gap:.8rem;padding:1rem}th,td{font-size:.8rem}table{min-width:640px}#map-box{height:40vh}}
+@media(max-width:400px){.nav a{padding:.3em .6em;font-size:.85rem}}
+</style>
+</head>
+<body>
+
+<div class="wrapper">
+
+  <!-- ────────── TOPBAR ────────── -->
+  <header class="topbar">
+    <div class="brand">
+      {% if list_type == "sale" %} sale adv
+      {% elif list_type == "rent" %} rent adv
+      {% else %} Dubai Listings
+      {% endif %}
+      <br>
+      <h1>Propertix</h1><h5>Dubai estate</h5>
+      <nav class="nav">
+        <a href="/">DLD</a>
+        <a href="{% url 'pf_listings_sale_view' %}">Sale</a>
+        <a href="{% url 'pf_listings_rent_view' %}">Rent</a>
+      </nav>
+    </div>
+
+    <!-- MAP -->
+    <div id="map-box">
+      <div id="map"></div>
+      <button id="map-toggle" aria-label="toggle map">⤢</button>
+    </div>
+    {{ map_markers|json_script:"markers-data" }}
+  </header>
+
+  <a href="r2d2/">Building Reports</a>
+
+  <!-- ────────── FILTER FORM ────────── -->
+  <form method="get" class="filter">
+    <label>Search
+      <input type="text" name="q" value="{{ search_query }}" placeholder="Tower, Address">
+    </label>
+    <label>Area
+      <select name="area">
+        <option value="">All</option>
+        {% for ar in all_areas %}
+          <option value="{{ ar.name }}" {% if filter_area == ar.name %}selected{% endif %}>{{ ar.name }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Price min
+      <input type="text" name="price_min" value="{{ price_min }}" placeholder="≥">
+    </label>
+    <label>Price max
+      <input type="text" name="price_max" value="{{ price_max }}" placeholder="≤">
+    </label>
+    <label>Sort
+      <select name="sort">
+        <option value="" {% if not sort_field %}selected{% endif %}>Default</option>
+        <option value="days" {% if sort_field == "days" %}selected{% endif %}>Days on market</option>
+        <option value="price_sqft" {% if sort_field == "price_sqft" %}selected{% endif %}>Price / ft²</option>
+        <option value="roi" {% if sort_field == "roi" %}selected{% endif %}>ROI (PF)</option>
+      </select>
+    </label>
+    <label>Order
+      <select name="order">
+        <option value="asc" {% if sort_order == "asc" %}selected{% endif %}>ASC</option>
+        <option value="desc" {% if sort_order == "desc" %}selected{% endif %}>DESC</option>
+      </select>
+    </label>
+    <button type="submit">SEARCH</button>
+  </form>
+
+  <!-- ────────── TABLES ────────── -->
+  <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Title</th>
+          <th>Building</th>
+          <th>Area</th>
+          <th>Address</th>
+          <th>Days on market</th>
+          <th>Bedrooms</th>
+          <th>Price</th>
+          <th>Price / ft²</th>
+          <th>ROI (PF)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for obj in page_obj %}
+          <tr data-id="{{ obj.id }}">
+            <td>
+              {% if obj.url %}
+                <a href="{{ obj.url }}" target="_blank">{{ obj.title|default:"—" }}</a>
+              {% else %}
+                {{ obj.title|default:"—" }}
+              {% endif %}
+            </td>
+            <td>{{ obj.building }}</td>
+            <td>{{ obj.area }}</td>
+            <td><small>(( {{ obj.display_address|default:"—" }} ))</small></td>
+            <td>{{ obj.days_on_market|default:"—" }}</td>
+            <td>{{ obj.bedrooms }}</td>
+            <td>
+              {{ obj.price|default:"—" }} {{ obj.price_currency|default:"AED" }}
+            </td>
+            <td>{{ obj.price_per_sqft|floatformat:0|default:"—" }}</td>
+            <td>{{ obj.roi|floatformat:3|default:"—" }}</td>
+          </tr>
+        {% empty %}
+          <tr><td colspan="9" class="text-center">No listings found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ────────── PAGINATION ────────── -->
+  <div class="pagination">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">‹ Prev</a>
+    {% endif %}
+    {% for p in page_obj.paginator.page_range %}
+      {% if page_obj.number == p %}
+        <span class="current">{{ p }}</span>
+      {% else %}
+        <a href="?page={{ p }}&{{ request.GET.urlencode|cut:'page=' }}">{{ p }}</a>
+      {% endif %}
+    {% endfor %}
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">Next ›</a>
+    {% endif %}
+  </div>
+
+</div><!-- /.wrapper -->
+
+<!-- ────────── JS: Leaflet + hover + toggle ────────── -->
+<script defer>
+window.addEventListener('DOMContentLoaded',()=>{
+  const markers=JSON.parse(document.getElementById('markers-data').textContent||'[]');
+  if(!markers.length){document.getElementById('map-box').style.display='none';return;}
+
+  const map=L.map('map',{zoomControl:false}).setView([markers[0].lat,markers[0].lng],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap'
+  }).addTo(map);
+
+  const rentIcon=L.divIcon({className:'rent-marker'});
+  const saleIcon=L.divIcon({className:'sale-marker'});
+  const ref={};
+
+  markers.forEach(p=>{
+    const m=L.marker([p.lat,p.lng],{icon:p.kind==='rent'?rentIcon:saleIcon})
+      .addTo(map)
+      .bindPopup(`<strong>${p.title}</strong><br>${p.price?Intl.NumberFormat().format(p.price)+' AED':''}`);
+    ref[p.id]=m;
+  });
+
+  document.querySelectorAll('tbody tr[data-id]').forEach(tr=>{
+    tr.addEventListener('mouseenter',()=>{
+      const m=ref[tr.dataset.id];
+      if(m){map.flyTo(m.getLatLng(),15,{duration:.4});m.openPopup();}
+    });
+  });
+
+  const box=document.getElementById('map-box'), btn=document.getElementById('map-toggle');
+  let full=false;
+  btn.addEventListener('click',e=>{
+    e.stopPropagation();full=!full;
+    box.classList.toggle('is-full',full);
+    btn.textContent=full?'×':'⤢';
+    map.invalidateSize();
+  });
+});
+</script>
+
+<!-- ────────── JS: скобки → стили ────────── -->
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('table tbody td').forEach(td=>{
+    let html=td.innerHTML;
+    html=html.replace(/\(\(([^)]*?)\)\)/g,(_,c)=>`<span class="double-paren">${c}</span>`);
+    html=html.replace(/(\([^)]*?\))/g,m=>`<small>${m}</small>`);
+    td.innerHTML=html;
+  });
+});
+</script>
+
+</body>
+</html>

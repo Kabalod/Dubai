@@ -1,0 +1,43 @@
+# Python/Django
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg-info/
+.eggs/
+.pytest_cache/
+.mypy_cache/
+
+# Env
+.env
+.env.*
+!.env.example
+
+# Virtual env
+.venv/
+venv/
+
+# Build/coverage
+build/
+dist/
+htmlcov/
+coverage/
+
+# Logs
+*.log
+logs/
+
+# SQLite / local db
+*.sqlite3
+/db.sqlite3
+
+# Static/media (generated)
+staticfiles/
+media/
+
+# OS/IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

@@ -1,0 +1,100 @@
+@use "@/styles/tokens" as *;
+@use "@/styles/typography" as *;
+
+.card {
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.card_small { width: 280px; }
+.card_default { width: 320px; }
+.card_large { width: 400px; }
+
+.cover {
+  position: relative;
+  width: 100%;
+  overflow: hidden;
+}
+.img { width: 100%; object-fit: cover; display: block; }
+.img_small { height: 160px; }
+.img_default { height: 200px; }
+.img_large { height: 250px; }
+
+.featuredTag,
+.statusTag {
+  position: absolute;
+  top: 8px;
+  margin: 0;
+  font-weight: 600;
+}
+.featuredTag { left: 8px; }
+.statusTag { right: 8px; }
+
+.body { padding: 0 4px; }
+
+.topRow { margin-bottom: 12px; }
+.topMeta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.id {
+  @include body3regular;
+  color: $textColorSecondary;
+}
+.title {
+  @include title5semibold;
+  color: $textColorPrimary;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.location { margin-bottom: 12px; }
+.locationIcon { color: var(--color-primary); }
+.locationText { @include body2regular; color: $textColorSecondary; }
+
+.price { margin-bottom: 16px; }
+.statPrimary {
+  :global(.ant-statistic-content-value) {
+    color: var(--color-primary);
+  }
+}
+.statSuffixHighlight { color: #52c41a; font-size: var(--font-size-md); }
+
+.features { margin-bottom: 16px; }
+.featureBox { text-align: center; }
+.featureValue { @include title6semibold; color: var(--color-primary); }
+.featureValueAlt { color: #52c41a; }
+.featureLabel { @include body3regular; color: $textColorSecondary; }
+
+.stats { margin-bottom: 16px; }
+.statBlock { text-align: center; }
+.statNumber { @include body2semibold; color: #52c41a; }
+.statNumberAlt { color: #faad14; }
+.statLabel { @include body3regular; color: $textColorSecondary; }
+
+.agent {
+  border-top: 1px solid var(--color-border);
+  padding-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.agentInfo { display: flex; align-items: center; }
+.agentAvatar { margin-right: 8px; }
+.agentName { @include body2semibold; color: $textColorPrimary; }
+.agentRating { @include body3regular; color: $textColorSecondary; }
+
+.actions {
+  border-top: 1px solid var(--color-border);
+  padding-top: 12px;
+  display: flex;
+  gap: 8px;
+}
+
+.iconActions { display: inline-flex; gap: 4px; }
+
+
+

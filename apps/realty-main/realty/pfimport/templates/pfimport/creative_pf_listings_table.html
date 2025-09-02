@@ -1,0 +1,429 @@
+{% extends "base.html" %}
+{% load custom_filters static %}
+
+{% block extra_head %}
+  <!-- Google Fonts — Onest & Roboto Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Onest:wght@100..900&family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap"
+    rel="stylesheet" />
+
+  <!-- Leaflet -->
+  <link rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        crossorigin="anonymous" />
+  <script defer
+          src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+          crossorigin="anonymous"></script>
+
+  <title>{{ list_type|capfirst }}</title>
+
+  <!--  ====== VISUAL STYLE (обновленный под iOS 2025) ====== -->
+  <style>
+@layer reset{
+*,*::before,*::after{box-sizing:border-box;margin:0}
+html{block-size:100%;text-size-adjust:none;-webkit-text-size-adjust:none}
+html:focus-within{scroll-behavior:smooth}
+body{min-block-size:100dvh;font-synthesis:none;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4,h5,h6{font:inherit;text-wrap:balance}
+p{text-wrap:pretty}
+ol,ul{list-style:none;padding:0}
+[popover]{margin:0;padding:0}
+a:not([class]){text-decoration-skip-ink:auto}
+a{color:inherit;text-decoration:none}
+img,picture,video,canvas,svg{display:block;max-inline-size:100%}
+input,button,textarea,select{font:inherit;letter-spacing:inherit;word-spacing:inherit;color:currentColor}
+@media(prefers-reduced-motion:reduce){
+html:focus-within{scroll-behavior:auto}
+*,*::before,*::after{animation-duration:.01ms !important;animation-iteration-count:1 !important;transition-duration:.01ms !important;scroll-behavior:auto !important}}
+}
+html{overflow-y:scroll;scrollbar-face-color:#007AFF;scrollbar-track-color:rgba(0,0,0,0)}
+::-webkit-scrollbar{width:4px;height:4px}
+::-webkit-scrollbar-track{background:rgba(0,0,0,0);border-radius:10px}
+::-webkit-scrollbar-thumb{background:#007AFF;border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:#F5F5F7}
+*{scrollbar-width:thin;scrollbar-color:#007AFF rgba(0,0,0,0)}
+
+:root{
+  --c-bg:#F5F5F7;
+  --c-text:#1C1C1E;
+  --c-muted:#8E8E93;
+  --c-accent:#007AFF;
+  --c-accent-bg:#E5F2FF;
+  --c-surface:#FFFFFF;
+  --ff-body:"Onest",-apple-system,sans-serif;
+  --ff-mono:"Roboto Mono",SF Mono,monospace;
+  --border-radius:12px;
+  --shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+body{
+  font-family:var(--ff-body);
+  color:var(--c-text);
+  background:var(--c-bg);
+  line-height:1.5;
+}
+
+.container{max-width:1440px;margin-inline:auto;padding:0 1rem}
+
+/* ───────── HEADER ───────── */
+.header{padding:1rem 0;background:var(--c-surface);box-shadow:var(--shadow);position:sticky;top:0;z-index:1000;}
+.header__inner{display:flex;align-items:center;justify-content:space-between}
+.nav{display:flex;gap:3rem;align-items:center}
+.nav__menu{display:flex;gap:2rem}
+.header__logo{font-weight:700;font-size:1.25rem;color:var(--c-accent)}
+.header__item.active{color:var(--c-accent);font-weight:600;position:relative}
+.header__item.active:after{content:"";position:absolute;bottom:-4px;left:0;right:0;height:2px;background:var(--c-accent);border-radius:1px}
+.header__burger{display:none}
+
+/* ───────── FILTERS / SEARCH ───────── */
+.filters__wrapper{display:flex;flex-direction:column}
+
+.filter{display:flex;flex-wrap:wrap;gap:.8rem;background:var(--c-surface);padding:1rem;border-radius:var(--border-radius);margin-bottom:2rem;box-shadow:var(--shadow)}
+.filter label{display:flex;flex-direction:column;font-size:.85rem;gap:.4rem;color:var(--c-muted)}
+.filter input,.filter select{background:var(--c-bg);border:1px solid var(--c-muted);border-radius:var(--border-radius);padding:.7rem 1rem;font-size:.95rem;min-width:8rem;transition:all 0.2s ease}
+.filter input:focus,.filter select:focus{outline:none;border-color:var(--c-accent);box-shadow:0 0 0 2px var(--c-accent-bg)}
+.filter button{background:var(--c-accent);color:#fff;border:none;border-radius:var(--border-radius);padding:.8rem 2rem;font-weight:600;cursor:pointer;transition:all 0.2s ease;box-shadow:var(--shadow)}
+.filter button:hover{opacity:.9;transform:translateY(-1px)}
+.filter button:active{transform:translateY(0)}
+
+/* ───────── MAP ───────── */
+#map-box{position:fixed;bottom:2rem;right:2rem;width:25%;height:25%;border:1px solid rgba(0,0,0,0.1);border-radius:var(--border-radius);overflow:hidden;z-index:1000;background:var(--c-surface);box-shadow:var(--shadow)}
+#map-box.is-full{inset:2%;width:96%;height:96%;border:none;border-radius:var(--border-radius)}
+#map{width:100%;height:100%}
+#map-toggle{position:absolute;bottom:1rem;right:1rem;width:44px;height:44px;border:none;border-radius:50%;background:var(--c-accent);color:#fff;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);transition:all 0.2s ease}
+#map-toggle:hover{transform:scale(1.05)}
+#map-toggle:active{transform:scale(0.95)}
+
+/* ───────── TABLE ───────── */
+.table-wrap{overflow-x:auto;background:var(--c-surface);border-radius:var(--border-radius);box-shadow:var(--shadow);margin-bottom:2rem}
+table{width:100%;border-collapse:collapse;min-width:44rem}
+thead th{font-family:var(--ff-mono);font-size:.85rem;text-align:left;padding:1rem;background:var(--c-bg);color:var(--c-muted);position:sticky;top:0}
+tbody td{padding:1rem;border-bottom:1px solid rgba(0,0,0,0.05);font-size:.95rem}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover{background:var(--c-accent-bg)}
+td small{color:var(--c-muted);font-size:.8em}
+.double-paren{color:var(--c-accent);font-size:.7em}
+
+/* ───────── PAGINATION (iOS стиль) ───────── */
+.pagination{display:flex;justify-content:center;gap:1rem;margin-block:1.5rem;flex-wrap:wrap;align-items:center}
+.pagination a,.pagination span{padding:.7rem 1.2rem;border-radius:var(--border-radius);font-size:.95rem;transition:all 0.2s ease}
+.pagination a{background:var(--c-surface);color:var(--c-accent);border:1px solid var(--c-accent);box-shadow:var(--shadow)}
+.pagination a:hover{background:var(--c-accent);color:#fff;transform:translateY(-1px)}
+.pagination a:active{transform:translateY(0)}
+.pagination .current{background:var(--c-accent);color:#fff;box-shadow:var(--shadow)}
+.pagination .page-input{width:4rem;text-align:center;padding:.7rem;border:1px solid var(--c-muted);border-radius:var(--border-radius);font-size:.95rem;background:var(--c-bg)}
+.pagination .page-input:focus{outline:none;border-color:var(--c-accent);box-shadow:0 0 0 2px var(--c-accent-bg)}
+
+/* ───────── RESPONSIVE ───────── */
+@media(max-width:900px){
+  #map-box{position:relative;inset:auto;width:100%;height:45vh;margin-top:1rem;border-radius:var(--border-radius)}
+  .filter{flex-direction:column}
+}
+.leaflet-control-attribution {
+    display: none;
+  }
+  </style>
+{% endblock extra_head %}
+
+{% block content %}
+<main class="main">
+
+  <!--  ────── FILTER FORM  ────── -->
+  <section class="filters">
+    <div class="container filters__wrapper">
+      <form class="filter" method="get">
+        <label>
+          Search
+          <input type="text" name="q" value="{{ search_query }}" placeholder="Tower, Address" />
+        </label>
+        <label>
+          Area
+          <select name="area">
+            <option value="">All</option>
+            {% for ar in all_areas %}
+              <option value="{{ ar.name }}" {% if filter_area == ar.name %}selected{% endif %}>{{ ar.name }}</option>
+            {% endfor %}
+          </select>
+        </label>
+        <label>Price min<input type="text" name="price_min" value="{{ price_min }}" placeholder="≥"></label>
+        <label>Price max<input type="text" name="price_max" value="{{ price_max }}" placeholder="≤"></label>
+        <label>
+          Комнаты
+          <select name="bedrooms">
+            <option value="">Все</option>
+            <option value="studio" {% if bedrooms_filter == 'studio' %}selected{% endif %}>Студия</option>
+            <option value="1" {% if bedrooms_filter == '1' %}selected{% endif %}>1</option>
+            <option value="2" {% if bedrooms_filter == '2' %}selected{% endif %}>2</option>
+            <option value="3" {% if bedrooms_filter == '3' %}selected{% endif %}>3</option>
+            <option value="4" {% if bedrooms_filter == '4' %}selected{% endif %}>4+</option>
+          </select>
+        </label>
+        <button type="submit">SEARCH</button>
+      </form>
+    </div>
+  </section>
+
+    <!--  ────── MAP  ────── -->
+    <div id="map-box">
+      <div id="map"></div>
+      <button id="map-toggle">⤢</button>
+    </div>
+    {{ map_markers|json_script:"markers-data" }}
+<!--  ────── TABLE  ────── -->
+<section class="transactions">
+  <div class="container table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Ссылка</th>
+          <th>Building</th>
+          <th>Area</th>
+          <th>
+            <a href="?{% if request.GET.q %}q={{ request.GET.q|urlencode }}&{% endif %}{% if request.GET.area %}area={{ request.GET.area|urlencode }}&{% endif %}{% if request.GET.price_min %}price_min={{ request.GET.price_min }}&{% endif %}{% if request.GET.price_max %}price_max={{ request.GET.price_max }}&{% endif %}{% if request.GET.bedrooms %}bedrooms={{ request.GET.bedrooms }}&{% endif %}sort=bedrooms&order={% if sort_field == 'bedrooms' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+              Комнаты
+              {% if sort_field == 'bedrooms' %}<span>{% if sort_order == 'asc' %}↑{% else %}↓{% endif %}</span>{% endif %}
+            </a>
+          </th>
+          <th>Цена</th>
+          <th>Средняя цена в здании</th>
+          <th>Кол-во объявленний</th>
+          <th>
+            <a href="?{% if request.GET.q %}q={{ request.GET.q|urlencode }}&{% endif %}{% if request.GET.area %}area={{ request.GET.area|urlencode }}&{% endif %}{% if request.GET.price_min %}price_min={{ request.GET.price_min }}&{% endif %}{% if request.GET.price_max %}price_max={{ request.GET.price_max }}&{% endif %}{% if request.GET.bedrooms %}bedrooms={{ request.GET.bedrooms }}&{% endif %}sort=days&order={% if sort_field == 'days' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+              Экспозиция
+              {% if sort_field == 'days' %}<span>{% if sort_order == 'asc' %}↑{% else %}↓{% endif %}</span>{% endif %}
+            </a>
+          </th>
+          <th>Средняя экспозиция по району</th>
+          <!-- <th>Address</th> -->
+          <th>
+            <a href="?{% if request.GET.q %}q={{ request.GET.q|urlencode }}&{% endif %}{% if request.GET.area %}area={{ request.GET.area|urlencode }}&{% endif %}{% if request.GET.price_min %}price_min={{ request.GET.price_min }}&{% endif %}{% if request.GET.price_max %}price_max={{ request.GET.price_max }}&{% endif %}{% if request.GET.bedrooms %}bedrooms={{ request.GET.bedrooms }}&{% endif %}sort=roi&order={% if sort_field == 'roi' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+              ROI объявления
+              {% if sort_field == 'roi' %}<span>{% if sort_order == 'asc' %}↑{% else %}↓{% endif %}</span>{% endif %}
+            </a>
+          </th>
+          <th>
+            <a href="?{% if request.GET.q %}q={{ request.GET.q|urlencode }}&{% endif %}{% if request.GET.area %}area={{ request.GET.area|urlencode }}&{% endif %}{% if request.GET.price_min %}price_min={{ request.GET.price_min }}&{% endif %}{% if request.GET.price_max %}price_max={{ request.GET.price_max }}&{% endif %}{% if request.GET.bedrooms %}bedrooms={{ request.GET.bedrooms }}&{% endif %}sort=building_avg_roi&order={% if sort_field == 'building_avg_roi' and sort_order == 'asc' %}desc{% else %}asc{% endif %}">
+              Среднее ROI по зданию
+              {% if sort_field == 'building_avg_roi' %}<span>{% if sort_order == 'asc' %}↑{% else %}↓{% endif %}</span>{% endif %}
+            </a>
+          </th>
+
+          <th>Объявлений по аренде</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for obj in page_obj %}
+          <tr data-id="{{ obj.id }}">
+            <td>
+              {% if obj.url %}
+                <a href="{{ obj.url }}" target="_blank">{{ obj.title|default:"—" }}</a>
+              {% else %}
+                {{ obj.title|default:"—" }}
+              {% endif %}
+            </td>
+            <td>{{ obj.building|default:"—" }}</td>
+            <td>{{ obj.area|default:"—" }}</td>
+            <td>{{ obj.bedrooms|default:"—" }}</td>
+            <td>{{ obj.price|default:"—" }} {{ obj.price_currency|default:"AED" }}</td>
+
+            <td>
+              {% if obj.building %}
+                <small>
+                  <strong>Продажа:</strong>
+                  {% if obj.bedrooms == "studio" %}
+                    {{ obj.building.avg_sale_studio|floatformat:0|default:"—" }}
+                  {% elif obj.bedrooms == "1" %}
+                    {{ obj.building.avg_sale_1br|floatformat:0|default:"—" }}
+                  {% elif obj.bedrooms == "2" %}
+                    {{ obj.building.avg_sale_2br|floatformat:0|default:"—" }}
+                  {% elif obj.bedrooms == "3" %}
+                    {{ obj.building.avg_sale_3br|floatformat:0|default:"—" }}
+                  {% elif obj.bedrooms == "4" %}
+                    {{ obj.building.avg_sale_4br|floatformat:0|default:"—" }}
+                  {% else %}
+                    —
+                  {% endif %}
+                  AED<br>
+                  <strong>Аренда:</strong>
+                  {% if obj.bedrooms == "studio" %}
+                    {{ obj.building.avg_rent_studio|floatformat:0|default:"—" }}
+                  {% elif obj.bedrooms == "1" %}
+                    {{ obj.building.avg_rent_1br|floatformat:0|default:"—" }}
+                  {% elif obj.bedrooms == "2" %}
+                    {{ obj.building.avg_rent_2br|floatformat:0|default:"—" }}
+                  {% elif obj.bedrooms == "3" %}
+                    {{ obj.building.avg_rent_3br|floatformat:0|default:"—" }}
+                  {% elif obj.bedrooms == "4" %}
+                    {{ obj.building.avg_rent_4br|floatformat:0|default:"—" }}
+                  {% else %}
+                    —
+                  {% endif %}
+                  AED
+                </small>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <td>
+              {% if obj.building %}
+                <small>
+                  {% if list_type == "sale" %}
+                    <strong>Всех объявлений на продажу:</strong>
+                    {{ obj.building.sale_count_studio|add:obj.building.sale_count_1br|add:obj.building.sale_count_2br|add:obj.building.sale_count_3br|add:obj.building.sale_count_4br|default:"—" }}<br>
+                    <strong>с данной комнатностью:</strong>
+                    {% if obj.bedrooms == "studio" %}
+                      {{ obj.building.sale_count_studio|default:"—" }}
+                    {% elif obj.bedrooms == "1" %}
+                      {{ obj.building.sale_count_1br|default:"—" }}
+                    {% elif obj.bedrooms == "2" %}
+                      {{ obj.building.sale_count_2br|default:"—" }}
+                    {% elif obj.bedrooms == "3" %}
+                      {{ obj.building.sale_count_3br|default:"—" }}
+                    {% elif obj.bedrooms == "4" %}
+                      {{ obj.building.sale_count_4br|default:"—" }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  {% else %}
+                    <strong>Всех объявлений на анренду:</strong>
+                    {{ obj.building.rent_count_studio|add:obj.building.rent_count_1br|add:obj.building.rent_count_2br|add:obj.building.rent_count_3br|add:obj.building.rent_count_4br|default:"—" }}<br>
+                    <strong>с данной комнатностью:</strong>
+                    {% if obj.bedrooms == "studio" %}
+                      {{ obj.building.rent_count_studio|default:"—" }}
+                    {% elif obj.bedrooms == "1" %}
+                      {{ obj.building.rent_count_1br|default:"—" }}
+                    {% elif obj.bedrooms == "2" %}
+                      {{ obj.building.rent_count_2br|default:"—" }}
+                    {% elif obj.bedrooms == "3" %}
+                      {{ obj.building.rent_count_3br|default:"—" }}
+                    {% elif obj.bedrooms == "4" %}
+                      {{ obj.building.rent_count_4br|default:"—" }}
+                    {% else %}
+                      —
+                    {% endif %}
+                  {% endif %}
+
+                </small>
+              {% else %}
+
+              {% endif %}
+            </td>
+
+            <td>{{ obj.days_on_market|default:"—" }}</td>
+            <td>
+              {% if obj.area %}
+                <small>
+                  <strong>{{ obj.area.avg_days_on_market|floatformat:1|default:"—" }} дней<br>
+                  <!-- <span style="color: var(--c-muted); font-size: 0.9em;"> -->
+                    ({{ obj.area.numbers_of_processed_ads }} из всех объявлений в районе)
+                  <!-- </span> -->
+                </strong></small>
+              {% else %}
+                —
+              {% endif %}
+            </td>
+            <!-- <td><small>(( {{ obj.display_address|default:"—" }} ))</small></td> -->
+            <td>{{ obj.roi|roi_display }}</td>
+            <td>{{ obj.building_avg_roi|roi_display }}</td>
+            <td> <small><strong>Всего объявлений:
+              {{ obj.building.rent_count_studio|add:obj.building.rent_count_1br|add:obj.building.rent_count_2br|add:obj.building.rent_count_3br|add:obj.building.rent_count_4br|default:"—" }}
+            </strong>С учётом комнатности:
+              {% if obj.bedrooms == "studio" %}
+                {{ obj.building.rent_count_studio|default:"—" }}
+              {% elif obj.bedrooms == "1" %}
+                {{ obj.building.rent_count_1br|default:"—" }}
+              {% elif obj.bedrooms == "2" %}
+                {{ obj.building.rent_count_2br|default:"—" }}
+              {% elif obj.bedrooms == "3" %}
+                {{ obj.building.rent_count_3br|default:"—" }}
+              {% elif obj.bedrooms == "4" %}
+                {{ obj.building.rent_count_4br|default:"—" }}
+              {% else %}
+                —
+              {% endif %}</small></td>
+
+          </tr>
+
+        {% empty %}
+          <tr><td colspan="12" class="text-center">No listings found</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- PAGINATION -->
+  <div class="pagination">
+    {% if page_obj.has_previous %}
+      <a href="?page={{ page_obj.previous_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">‹ Prev</a>
+    {% endif %}
+
+    <form method="get" style="display: flex; gap: 0.5rem;">
+      <input type="number"
+             name="page"
+             class="page-input"
+             min="1"
+             max="{{ page_obj.paginator.num_pages }}"
+             value="{{ page_obj.number }}"
+             onchange="this.form.submit()">
+      <input type="hidden" name="q" value="{{ search_query }}">
+      <input type="hidden" name="area" value="{{ filter_area }}">
+      <input type="hidden" name="price_min" value="{{ price_min }}">
+      <input type="hidden" name="price_max" value="{{ price_max }}">
+      <input type="hidden" name="bedrooms" value="{{ bedrooms_filter }}">
+      <input type="hidden" name="sort" value="{{ sort_field }}">
+      <input type="hidden" name="order" value="{{ sort_order }}">
+    </form>
+
+    {% if page_obj.has_next %}
+      <a href="?page={{ page_obj.next_page_number }}&{{ request.GET.urlencode|cut:'page=' }}">Next ›</a>
+    {% endif %}
+  </div>
+</section>
+
+</main>
+{% endblock content %}
+
+{% block extra_body %}
+<script defer>
+window.addEventListener('DOMContentLoaded',()=>{
+  const markers=JSON.parse(document.getElementById('markers-data').textContent||'[]');
+  if(!markers.length){document.getElementById('map-box').style.display='none';return;}
+
+  const map=L.map('map',{zoomControl:false}).setView([markers[0].lat,markers[0].lng],12);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap'}).addTo(map);
+  const rentIcon=L.divIcon({className:'rent-marker'}), saleIcon=L.divIcon({className:'sale-marker'}), ref={};
+
+  markers.forEach(p=>{
+    const m=L.marker([p.lat,p.lng],{icon:p.kind==='rent'?rentIcon:saleIcon})
+      .addTo(map)
+      .bindPopup(`<strong>${p.title}</strong><br>${p.price?Intl.NumberFormat().format(p.price)+' AED':''}`);
+    ref[p.id]=m;
+  });
+
+  document.querySelectorAll('tbody tr[data-id]').forEach(tr=>{
+    tr.addEventListener('mouseenter',()=>{const m=ref[tr.dataset.id];if(m){map.flyTo(m.getLatLng(),15,{duration:.4});m.openPopup();}});
+  });
+
+  const box=document.getElementById('map-box'), btn=document.getElementById('map-toggle');
+  btn.addEventListener('click',e=>{
+    e.stopPropagation();
+    box.classList.toggle('is-full');
+    btn.textContent=box.classList.contains('is-full')?'×':'⤢';
+    map.invalidateSize();
+  });
+});
+</script>
+
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('tbody td').forEach(td=>{
+    let html=td.innerHTML;
+    html=html.replace(/\(\(([^)]*?)\)\)/g,(_,c)=>`<span class="double-paren">${c}</span>`);
+    html=html.replace(/(\([^)]*?\))/g,m=>`<small>${m}</small>`);
+    td.innerHTML=html;
+  });
+});
+</script>
+{% endblock extra_body %}

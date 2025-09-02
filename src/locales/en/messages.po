@@ -1,0 +1,265 @@
+msgid ""
+msgstr ""
+"POT-Creation-Date: 2025-02-08 19:28+0100\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=utf-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: @lingui/cli\n"
+"Language: en\n"
+"Project-Id-Version: \n"
+"Report-Msgid-Bugs-To: \n"
+"PO-Revision-Date: \n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Plural-Forms: \n"
+
+#. js-lingui-explicit-id
+#: src/components/autocomplete/autocomplete.tsx:71
+#~ msgid "autocomplete.placeholder"
+#~ msgstr "Search by area, project or building"
+
+#. js-lingui-explicit-id
+#: src/pages/Dashboard.tsx:34
+#~ msgid "test.id2"
+#~ msgstr "This is a sample text in the selected language."
+
+#. js-lingui-explicit-id
+#: src/pages/Dashboard.tsx:31
+#~ msgid "test.id"
+#~ msgstr "User Cabinet"
+
+#: src/pages/auth/SignUpForm.tsx:192
+msgid "and I consent to the processing of"
+msgstr "and I consent to the processing of"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:18
+msgid "All"
+msgstr "All"
+
+#: src/components/header/Header.tsx:19
+#~ msgid "Analytics"
+#~ msgstr "Analytics"
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:27
+msgid "Analyze all real transaction data obtained from Dubai Land Department."
+msgstr "Analyze all real transaction data obtained from Dubai Land Department."
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:41
+msgid "Analyze data received from real estate sales marketplaces."
+msgstr "Analyze data received from real estate sales marketplaces."
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:22
+msgid "Apartments"
+msgstr "Apartments"
+
+#: src/pages/Dashboard.tsx:211
+#: src/components/Dashboard/Dashboard.tsx:137
+msgid "APARTMENTS"
+msgstr "APARTMENTS"
+
+#: src/pages/Dashboard.tsx:204
+#: src/components/Dashboard/Dashboard.tsx:130
+msgid "BUILDINGS"
+msgstr "BUILDINGS"
+
+#: src/pages/auth/LoginForm.tsx:306
+msgid "CHANGE PASSWORD"
+msgstr "CHANGE PASSWORD"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:34
+msgid "Commercial"
+msgstr "Commercial"
+
+#: src/pages/auth/SignUpForm.tsx:231
+msgid "CONFIRM"
+msgstr "CONFIRM"
+
+#: src/pages/auth/SignUpForm.tsx:338
+msgid "CREATE ACCOUNT"
+msgstr "CREATE ACCOUNT"
+
+#: src/pages/Dashboard.tsx:211
+#~ msgid "dashboard.apartments"
+#~ msgstr "APARTMENTS"
+
+#: src/pages/Dashboard.tsx:204
+#~ msgid "dashboard.buildings"
+#~ msgstr "BUILDINGS"
+
+#: src/pages/Dashboard.tsx:218
+#~ msgid "dashboard.deals"
+#~ msgstr "DEALS"
+
+#: src/pages/Dashboard.tsx:196
+#~ msgid "dashboard.overview"
+#~ msgstr "Overview"
+
+#: src/pages/Dashboard.tsx:218
+#: src/components/Dashboard/Dashboard.tsx:144
+msgid "DEALS"
+msgstr "DEALS"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:84
+msgid "Developer"
+msgstr "Developer"
+
+#. js-lingui-explicit-id
+#: src/components/autocomplete/AutocompleteDeveloper.tsx:77
+msgid "autocomplete.developer.placeholder"
+msgstr "Developer"
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:23
+msgid "DLD"
+msgstr "DLD"
+
+#: src/pages/auth/SignUpForm.tsx:151
+msgid "Enter an email to get started"
+msgstr "Enter an email to get started"
+
+#: src/pages/auth/SignUpForm.tsx:206
+msgid "Enter the code to complete the registration"
+msgstr "Enter the code to complete the registration"
+
+#: src/pages/auth/LoginForm.tsx:192
+msgid "Forgot your password?"
+msgstr "Forgot your password?"
+
+#: src/pages/auth/SignUpForm.tsx:111
+#~ msgid "I have read the <0>policy agreement</0> and I consent to the processing of personal data"
+#~ msgstr "I have read the <0>policy agreement</0> and I consent to the processing of personal data"
+
+#: src/pages/auth/SignUpForm.tsx:188
+msgid "I have read the "
+msgstr "I have read the "
+
+#: src/pages/auth/SignUpForm.tsx:148
+msgid "Join us for free!"
+msgstr "Join us for free!"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:30
+msgid "Land"
+msgstr "Land"
+
+#: src/pages/auth/LoginForm.tsx:184
+#: src/pages/auth/LoginForm.tsx:358
+msgid "LOG IN"
+msgstr "LOG IN"
+
+#: src/pages/auth/LoginForm.tsx:144
+msgid "Log in to your account"
+msgstr "Log in to your account"
+
+#: src/components/header/Header.tsx:11
+#~ msgid "Main"
+#~ msgstr "Main"
+
+#: src/components/ModeSwitcher/ModeSwitcher.tsx:37
+msgid "Marketplace"
+msgstr "Marketplace"
+
+#: src/pages/auth/LoginForm.tsx:224
+msgid "NEXT"
+msgstr "NEXT"
+
+#: src/pages/auth/LoginForm.tsx:318
+msgid "Now you can log in using a new password"
+msgstr "Now you can log in using a new password"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:173
+msgid "OTHER"
+msgstr "OTHER"
+
+#: src/pages/Dashboard.tsx:196
+#: src/components/Dashboard/Dashboard.tsx:122
+msgid "Overview"
+msgstr "Overview"
+
+#: src/pages/auth/LoginForm.tsx:315
+msgid "Password has been successfully updated"
+msgstr "Password has been successfully updated"
+
+#: src/pages/auth/LoginForm.tsx:201
+msgid "Password Recovery"
+msgstr "Password Recovery"
+
+#: src/pages/auth/LoginForm.tsx:264
+msgid "Password reset"
+msgstr "Password reset"
+
+#: src/components/header/Header.tsx:35
+#~ msgid "Payments"
+#~ msgstr "Payments"
+
+#: src/pages/auth/SignUpForm.tsx:193
+msgid "personal data"
+msgstr "personal data"
+
+#: src/pages/auth/SignUpForm.tsx:190
+msgid "policy agreement"
+msgstr "policy agreement"
+
+#: src/pages/auth/SignUpForm.tsx:191
+msgid " and I consent to the processing of "
+msgstr " and I consent to the processing of "
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:90
+msgid "PRICE, AED"
+msgstr "PRICE, AED"
+
+#: src/components/header/Header.tsx:27
+#~ msgid "Reports"
+#~ msgstr "Reports"
+
+#: src/pages/auth/LoginForm.tsx:245
+msgid "RESEND"
+msgstr "RESEND"
+
+#. js-lingui-explicit-id
+#: src/components/MainFilters/MainFilters.tsx:136
+msgid "filters.search"
+msgstr "SEARCH"
+
+#. js-lingui-explicit-id
+#: src/components/autocomplete/AutocompleteBuilding.tsx:79
+msgid "autocomplete.building.placeholder"
+msgstr "Search by area, project or building"
+
+#: src/pages/auth/SignUpForm.tsx:239
+msgid "Send the code again"
+msgstr "Send the code again"
+
+#: src/pages/auth/SignUpForm.tsx:181
+msgid "SIGN UP"
+msgstr "SIGN UP"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:111
+msgid "SIZE M"
+msgstr "SIZE M"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:134
+msgid "SOLD BY"
+msgstr "SOLD BY"
+
+#: src/components/DropdownMenu/DropdownMenu.tsx:153
+msgid "STATUS"
+msgstr "STATUS"
+
+#: src/components/ModeSwitcher/ModeSwitcherCard.tsx:26
+msgid "Villas"
+msgstr "Villas"
+
+#: src/pages/auth/LoginForm.tsx:234
+msgid "We have sent email to {email}"
+msgstr "We have sent email to {email}"
+
+#: src/pages/auth/SignUpForm.tsx:203
+msgid "We have sent the code to {email}"
+msgstr "We have sent the code to {email}"
+
+#: src/pages/auth/SignUpForm.tsx:248
+msgid "Welcome!"
+msgstr "Welcome!"
+
+#: src/pages/auth/LoginForm.tsx:253
+msgid "You can resend the email after"
+msgstr "You can resend the email after"

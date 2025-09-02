@@ -1,0 +1,149 @@
+{% load humanize static %}
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Building report</title>
+<link rel="stylesheet" href="{% static 'bootstrap.min.css' %}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+body{background:#131313;color:#eaeaea;padding:2rem;font-family:"Inter",sans-serif;}
+.panel{background:#222;margin-bottom:2rem;padding:1.4rem;border-radius:8px}
+select,button{padding:.4rem .9rem;font-size:1rem;margin-right:.6rem}
+.metric{flex:1 0 230px;background:#1a1a1a;margin:.6rem;padding:.8rem;border-radius:6px}
+.metric h4{font-size:.9rem;color:#0ef;margin:0 0 .3rem 0}
+.table-mini th, .table-mini td{padding:.4rem .6rem;font-size:.85rem}
+canvas{background:#181818;border-radius:6px;min-height:200px;width:100%}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;margin-bottom:2rem}
+</style>
+</head>
+<body>
+
+<form method="get" class="panel">
+    <label>Building:
+      <select name="building" required>
+        <option value="">— select —</option>
+        {% for b in buildings %}
+            <option value="{{ b.id }}" {% if selected_building_id == b.id|stringformat:"s" %} selected {% endif %}>
+                {{ b.name }} ({{ b.area.name }})
+            </option>
+        {% endfor %}
+      </select></label>
+    <label>Bedrooms:
+      <select name="bedrooms">
+        {% for key,label in bedrooms_choices %}
+           <option value="{{ key }}" {% if selected_bedrooms == key %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select></label>
+    <button type="submit">Show</button>
+</form>
+
+{% if metrics %}
+  <div class="panel">
+    <h3>{{ metrics.building_name }} — {{ metrics.br }}</h3>
+    <div style="display:flex;flex-wrap:wrap">
+      <div class="metric"><h4>Flats total</h4>{{ metrics.flats_total|default:"—" }}</div>
+      <div class="metric"><h4>Flats / br</h4>{{ metrics.flats_br|default:"—" }}</div>
+      <div class="metric"><h4>PF sale avg</h4>{{ metrics.pf_sale.avg|floatformat:0|intcomma|default:"—" }}</div>
+      <div class="metric"><h4>PF rent avg</h4>{{ metrics.pf_rent.avg|floatformat:0|intcomma|default:"—" }}</div>
+      <div class="metric"><h4>DLD sale avg</h4>{{ metrics.dld_sale.avg|floatformat:0|intcomma|default:"—" }}</div>
+      <div class="metric"><h4>DLD rent avg</h4>{{ metrics.dld_rent.avg|floatformat:0|intcomma|default:"—" }}</div>
+      <div class="metric"><h4>PF ROI</h4>{{ metrics.pf_roi|floatformat:2|default:"—" }} %</div>
+      <div class="metric"><h4>DLD ROI</h4>{{ metrics.dld_roi|floatformat:2|default:"—" }} %</div>
+      <div class="metric"><h4>Liquidity</h4>{{ metrics.liquidity|floatformat:2|default:"—" }} %</div>
+    </div>
+  </div>
+  {% if metrics.dld_raw %}
+    <h4>DLD building – RAW ({{ metrics.br }})</h4>
+    <table class="table table-dark table-bordered table-sm">
+      <tr><th></th><th>avg</th><th>median</th><th>spread</th><th>#deals</th></tr>
+      <tr>
+        <td>Sale</td>
+        <td>{{ metrics.dld_raw.sale.avg|floatformat:0|intcomma }}</td>
+        <td>{{ metrics.dld_raw.sale.median|floatformat:0|intcomma }}</td>
+        <td>{{ metrics.dld_raw.sale.spread|floatformat:0|intcomma }}</td>
+        <td>{{ metrics.dld_raw.sale.count }}</td>
+      </tr>
+      <tr>
+        <td>Rent</td>
+        <td>{{ metrics.dld_raw.rent.avg|floatformat:0|intcomma }}</td>
+        <td>{{ metrics.dld_raw.rent.median|floatformat:0|intcomma }}</td>
+        <td>{{ metrics.dld_raw.rent.spread|floatformat:0|intcomma }}</td>
+        <td>{{ metrics.dld_raw.rent.count }}</td>
+      </tr>
+      <tr>
+        <td colspan="5">
+          ROI = {{ metrics.dld_raw.roi_pct|floatformat:2|default:"—" }} %
+          &nbsp;|&nbsp;
+
+          Liquidity = {{ metrics.dld_raw.liq_param_one|floatformat:2|default:"—" }}
+          &nbsp;|&nbsp;
+          Units = {{ metrics.dld_raw.total_units|default:"—" }}
+        </td>
+      </tr>
+    </table>
+  {% endif %}
+  <!-- графики -->
+  <div class="grid2">
+    <div class="panel"><h5>PF Sale trend</h5><canvas id="pfSale"></canvas></div>
+    <div class="panel"><h5>DLD Sale trend</h5><canvas id="dldSale"></canvas></div>
+    <div class="panel"><h5>PF Rent trend</h5><canvas id="pfRent"></canvas></div>
+    <div class="panel"><h5>DLD Rent trend</h5><canvas id="dldRent"></canvas></div>
+  </div>
+
+  <!-- последние сделки -->
+  <div class="panel">
+    <h4>Последние сделки (PF Sale)</h4>
+    <table class="table table-mini table-dark table-bordered">
+      <thead><tr><th>Дата</th><th>Цена</th><th>Пл.</th><th>Адрес</th></tr></thead><tbody>
+      {% for d in metrics.pf_sale_last %}
+        <tr><td>{{ d.added_on|date:"d.m.Y" }}</td><td>{{ d.price|intcomma }}</td>
+            <td>{{ d.numeric_area }}</td><td>{{ d.display_address }}</td></tr>
+      {% empty %}<tr><td colspan="4">—</td></tr>{% endfor %}
+      </tbody>
+    </table>
+
+    <h4>Последние сделки (DLD Sale)</h4>
+    <table class="table table-mini table-dark table-bordered">
+      <thead><tr><th>Дата</th><th>Цена</th><th>Пл.</th><th>Здание</th></tr></thead><tbody>
+      {% for d in metrics.dld_sale_last %}
+        <tr><td>{{ d.date_of_transaction|date:"d.m.Y" }}</td>
+            <td>{{ d.transaction_price|intcomma }}</td><td>{{ d.sqm }}</td>
+            <td>{{ d.building_name }}</td></tr>
+      {% empty %}<tr><td colspan="4">—</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- JSON data for charts -->
+  {{ metrics.pf_sale_lbl|json_script:"pfSaleLbl" }}
+  {{ metrics.pf_sale_val|json_script:"pfSaleVal" }}
+  {{ metrics.dld_sale_lbl|json_script:"dldSaleLbl" }}
+  {{ metrics.dld_sale_val|json_script:"dldSaleVal" }}
+  {{ metrics.pf_rent_lbl|json_script:"pfRentLbl" }}
+  {{ metrics.pf_rent_val|json_script:"pfRentVal" }}
+  {{ metrics.dld_rent_lbl|json_script:"dldRentLbl" }}
+  {{ metrics.dld_rent_val|json_script:"dldRentVal" }}
+
+  <script>
+  function make(id,lblId,valId,color){
+    const ctx=document.getElementById(id).getContext('2d');
+    const labels=JSON.parse(document.getElementById(lblId).textContent);
+    const data  =JSON.parse(document.getElementById(valId).textContent);
+    if(!labels.length){ctx.canvas.parentElement.innerHTML='Нет данных';return;}
+    new Chart(ctx,{type:'line',
+      data:{labels:labels,datasets:[{data:data,borderColor:color,tension:.25}]},
+      options:{plugins:{legend:{display:false}},scales:{x:{grid:{display:false}},y:{grid:{display:false}}}}
+    });
+  }
+  make('pfSale','pfSaleLbl','pfSaleVal','#05e');
+  make('dldSale','dldSaleLbl','dldSaleVal','#ff9800');
+  make('pfRent','pfRentLbl','pfRentVal','#0f0');
+  make('dldRent','dldRentLbl','dldRentVal','#bc27ff');
+  </script>
+{% else %}
+  <div class="panel">Выберите здание и количество комнат, затем нажмите «Show».</div>
+{% endif %}
+
+</body>
+</html>

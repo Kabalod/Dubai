@@ -1,0 +1,11 @@
+{# templates/admin/reports/cityreportpf/change_list.html #}
+{% extends "admin/change_list.html" %}
+
+{% block object-tools-items %}
+    <li>
+        <a class="button" href="{% url 'admin:cityreportpf_recalculate_all' %}">
+            Пересчитать всё
+        </a>
+    </li>
+    {{ block.super }}
+{% endblock object-tools-items %}

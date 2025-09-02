@@ -1,0 +1,11 @@
+<!-- realty/reports/templates/admin/reports/dldbuildingreport/change_list.html -->
+{% extends "admin/change_list.html" %}
+
+{% block object-tools %}
+  {{ block.super }}
+  <li>
+    <a href="{% url 'admin:dldbuildingreport_recalculate_all' %}" class="addlink">
+      Пересчитать все DLD-отчёты (с индикатором)
+    </a>
+  </li>
+{% endblock object-tools %}

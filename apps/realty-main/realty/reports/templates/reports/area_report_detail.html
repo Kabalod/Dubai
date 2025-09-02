@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% load report_extras %}
+{% block content %}
+<div class="container py-8 px-6 mx-auto">
+
+  <!-- Форма фильтрации -->
+  <form method="get" class="flex flex-wrap gap-4 items-end mb-8">
+    <div class="w-full sm:w-1/2 lg:w-1/3">
+      <label for="area" class="block text-sm font-medium text-gray-700">Район</label>
+      <select id="area" name="area"
+              class="block mt-1 w-full rounded-md border-gray-300 shadow-sm">
+        <option value="" disabled {% if not selected_area %}selected{% endif %}>— выберите район —</option>
+        {% for a in areas %}
+          <option value="{{ a.pk }}" {% if selected_area and a.pk == selected_area.pk %}selected{% endif %}>
+            {{ a.name_en }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="w-full sm:w-1/3 lg:w-1/5">
+      <label for="bedrooms" class="block text-sm font-medium text-gray-700">Комнатность</label>
+      <select id="bedrooms" name="bedrooms"
+              class="block mt-1 w-full rounded-md border-gray-300 shadow-sm">
+        <option value="" disabled {% if not selected_bedrooms %}selected{% endif %}>— выберите —</option>
+        {% for key,label in bedroom_choices %}
+          <option value="{{ key }}" {% if selected_bedrooms == key %}selected{% endif %}>
+            {{ label }}
+          </option>
+        {% endfor %}
+      </select>
+    </div>
+    <button type="submit"
+            class="py-2 px-6 text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
+      Показать отчёт
+    </button>
+  </form>
+
+  {% if report %}
+    <!-- Заголовок -->
+    <div class="mb-6">
+      <h1 class="text-3xl font-bold">{{ report.area.name_en }}</h1>
+      <h2 class="text-2xl font-semibold">Комнатность: {{ report.get_bedrooms_display }}</h2>
+      <p class="text-sm text-gray-500">Дата расчёта: {{ report.calculated_at|date:"Y-m-d H:i" }}</p>
+    </div>
+
+    <!-- Основные метрики -->
+    <table class="mb-8 w-full text-left border-collapse table-auto">
+      <thead>
+        <tr class="bg-gray-100">
+          <th class="py-2 px-4">Метрика</th>
+          <th class="py-2 px-4">Значение</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y">
+        <tr>
+          <td class="py-2 px-4">Средняя цена (LY)</td>
+          <td class="py-2 px-4">{{ report.avg_sale_price_ly|default:"—" }}</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Медианная цена (LY)</td>
+          <td class="py-2 px-4">{{ report.median_sale_price_ly|default:"—" }}</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Мин/макс цена (LY)</td>
+          <td class="py-2 px-4">
+            {{ report.min_sale_price_ly|default:"—" }} –
+            {{ report.max_sale_price_ly|default:"—" }}
+          </td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Средняя площадь (LY)</td>
+          <td class="py-2 px-4">{{ report.avg_sqm_sale_ly|default:"—" }} м²</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Средняя цена за м² (LY)</td>
+          <td class="py-2 px-4">{{ report.avg_ppsqm_sale_ly|default:"—" }}</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Среднее число сделок (на здание, LY)</td>
+          <td class="py-2 px-4">{{ report.avg_tx_per_building_ly|default:"—" }}</td>
+        </tr>
+        <tr>
+          <td class="py-2 px-4">Средний ROI (на здание, LY)</td>
+          <td class="py-2 px-4">{{ report.avg_roi_by_building_ly|default:"—" }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Последние 3 сделки -->
+    <div class="mb-8">
+      <h3 class="mb-2 text-xl font-semibold">3 последние продажи</h3>
+      <ul class="list-disc list-inside">
+        {% for tx in report.last_3_sales %}
+          <li>{{ tx.date }} — {{ tx.price }} AED / {{ tx.sqm }} м²</li>
+        {% empty %}
+          <li>— нет данных —</li>
+        {% endfor %}
+      </ul>
+    </div>
+    <div>
+      <h3 class="mb-2 text-xl font-semibold">3 последние аренды</h3>
+      <ul class="list-disc list-inside">
+        {% for tx in report.last_3_rents %}
+          <li>{{ tx.date }} — {{ tx.price }} AED / {{ tx.sqm }} м²</li>
+        {% empty %}
+          <li>— нет данных —</li>
+        {% endfor %}
+      </ul>
+    </div>
+
+  {% elif selected_area and selected_bedrooms %}
+    <!-- Если фильтр задан, но отчёта нет -->
+    <p class="font-semibold text-red-600 animate-vibrate">
+      Нет данных для выбранного района и комнатности
+    </p>
+  {% endif %}
+
+</div>
+{% endblock content %}

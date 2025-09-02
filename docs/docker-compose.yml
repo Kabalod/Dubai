@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  docs:
+    image: squidfunk/mkdocs-material:latest
+    container_name: dubai-docs
+    ports:
+      - "8081:8000"
+    volumes:
+      - .:/docs
+    command: serve --dev-addr=0.0.0.0:8000 --host=0.0.0.0
+    environment:
+      - MKDOCS_CONFIG_FILE=/docs/mkdocs.yml
+    networks:
+      - dubai-network
+
+  # Дополнительный сервис для сборки статической документации
+  docs-builder:
+    image: squidfunk/mkdocs-material:latest
+    container_name: dubai-docs-builder
+    volumes:
+      - .:/docs
+      - ./site:/docs/site
+    command: build
+    environment:
+      - MKDOCS_CONFIG_FILE=/docs/mkdocs.yml
+    networks:
+      - dubai-network
+
+networks:
+  dubai-network:
+    external: true

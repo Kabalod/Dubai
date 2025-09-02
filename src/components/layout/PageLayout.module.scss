@@ -1,0 +1,22 @@
+@use "@/styles/tokens" as *;
+
+.page {
+    background: var(--color-bg);
+    min-height: calc(100vh - var(--header-height));
+}
+
+.container {
+    margin: 0 auto;
+    padding: 16px 20px;
+    max-width: 1280px;
+}
+
+.breadcrumbs {
+    margin: 12px 0 16px;
+}
+
+.content {
+    display: block;
+}
+
+
