@@ -48,25 +48,55 @@ const SignUpForm: React.FC = () => {
         
         try {
             setEmail(values.email as string);
-            // Сохраняем email, чтобы не потерять на шаге Complete при обновлении страницы
             localStorage.setItem('signup-email', values.email as string);
             console.log('Email set to state:', values.email);
             
-            console.log('About to send OTP request via apiService');
             setSendingOtp(true);
             
             try {
-                const data = await apiService.sendOTP(values.email);
-                console.log('OTP sent successfully:', data);
+                // Инициируем регистрацию - это автоматически отправит OTP
+                const data = await apiService.register({
+                    email: values.email,
+                    first_name: '', // Заполним на последнем шаге
+                    last_name: ''   // Заполним на последнем шаге
+                });
+                console.log('Registration initiated, OTP sent:', data);
+                
+                if (data.otp_code) {
+                    console.log('📧 DEBUG OTP Code:', data.otp_code);
+                    message.info(`Debug: OTP Code is ${data.otp_code}`);
+                }
+                
+                message.success('Verification code sent to your email!');
                 setCurrentStep(FormSteps.Confirm);
                 setResendCooldown(60);
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Failed to send OTP:', error);
-                message.error('Failed to send OTP. Please try again.');
+                
+                // Обработка ошибки "пользователь уже существует"
+                if (error.message && error.message.includes('already exists')) {
+                    message.warning('Email already registered. Try verifying instead.');
+                    // Все равно отправляем OTP для существующего пользователя
+                    try {
+                        const otpData = await apiService.sendOTP(values.email);
+                        console.log('OTP sent for existing user:', otpData);
+                        if (otpData.otp_code) {
+                            console.log('📧 DEBUG OTP Code:', otpData.otp_code);
+                            message.info(`Debug: OTP Code is ${otpData.otp_code}`);
+                        }
+                        setCurrentStep(FormSteps.Confirm);
+                        setResendCooldown(60);
+                    } catch (otpError) {
+                        console.error('Failed to send OTP for existing user:', otpError);
+                        message.error('Failed to send verification code. Please try again.');
+                    }
+                } else {
+                    message.error('Registration failed. Please try again.');
+                }
             }
         } catch (err) {
             console.error('Error in handleSignUp:', err);
-            // ✅ ИСПРАВЛЕНО: убрали message.error
+            message.error('An unexpected error occurred. Please try again.');
         } finally {
             setSendingOtp(false);
         }
@@ -74,36 +104,53 @@ const SignUpForm: React.FC = () => {
 
     const handleValidation = async (values: any) => {
         try {
-            // OTP код приходит как строка из компонента
             const otpCode = values.otp || "";
             
             console.log('=== handleValidation CALLED ===');
             console.log('OTP Code:', otpCode);
             console.log('Email:', email);
             
-            console.log('About to verify OTP via apiService');
-            
             setVerifyingOtp(true);
             try {
+                // Верифицируем OTP код
                 const data = await apiService.verifyOTP(email, otpCode);
                 console.log('OTP verified successfully:', data);
                 
-                // Сохраняем токены
-                if (data.tokens) {
-                    localStorage.setItem('accessToken', data.tokens.access);
-                    localStorage.setItem('refreshToken', data.tokens.refresh);
+                // Сохраняем токены если они есть
+                if (data.access) {
+                    localStorage.setItem('accessToken', data.access);
+                    localStorage.setItem('refreshToken', data.refresh);
                     console.log('Tokens saved to localStorage');
+                    
+                    // Сохраняем данные пользователя
+                    if (data.user) {
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                    }
+                    
+                    message.success('Email verified successfully!');
+                    // Если уже есть токены - сразу переходим на главную
+                    navigate('/');
+                    return;
                 }
                 
-                // Переходим к следующему шагу
+                // Если токенов нет - переходим к заполнению деталей
+                message.success('Email verified! Please complete your profile.');
                 setCurrentStep(FormSteps.Details);
-            } catch (error) {
+                
+            } catch (error: any) {
                 console.error('OTP verification failed:', error);
-                message.error('Invalid OTP code. Please try again.');
+                
+                if (error.message && error.message.includes('Invalid') || error.message.includes('expired')) {
+                    message.error('Invalid or expired code. Please try again.');
+                } else if (error.message && error.message.includes('attempts')) {
+                    message.error('Too many attempts. Please request a new code.');
+                } else {
+                    message.error('Verification failed. Please try again.');
+                }
             }
         } catch (err) {
             console.error('Error in handleValidation:', err);
-            // ✅ ИСПРАВЛЕНО: убрали message.error
+            message.error('An unexpected error occurred. Please try again.');
         } finally {
             setVerifyingOtp(false);
         }
@@ -114,46 +161,57 @@ const SignUpForm: React.FC = () => {
         console.log('Values parameter:', values);
         
         try {
-            console.log("Registration data:", values);
-            console.log("Email from state:", email);
-            
-            // Подстраховка: читаем email из localStorage
             const effectiveEmail = email || localStorage.getItem('signup-email') || '';
             if (!effectiveEmail) {
-                console.log('No email in state, showing error');
-                // ✅ ИСПРАВЛЕНО: убрали message.error
+                message.error('Email not found. Please start over.');
+                setCurrentStep(FormSteps.Join);
                 return;
             }
             
-            console.log('About to send registration request via apiService...');
             setSubmitting(true);
             
-            try {
-                // Если уже есть токены после verifyOTP — считаем пользователя залогиненным
-                if (localStorage.getItem('accessToken')) {
-                    navigate("/");
-                    return;
-                }
-                // Иначе завершаем регистрацию (пароль опционален)
-                const responseData = await apiService.register({
-                    email: effectiveEmail,
-                    password: values.password || `Otp${Date.now()}!`,
-                    username: effectiveEmail,
-                    first_name: values.name.split(' ')[0] || '',
-                    last_name: values.name.split(' ').slice(1).join(' ') || '',
-                });
-                console.log('Registration successful!', responseData);
-                message.success('Registration successful!');
+            // Если уже есть токены - просто переходим на главную
+            if (localStorage.getItem('accessToken')) {
+                message.success('Welcome! Registration completed.');
                 navigate("/");
-            } catch (error) {
-                console.error('Registration failed:', error);
-                message.error('Registration failed. Please try again.');
+                return;
             }
+            
+            // Обновляем профиль пользователя с именем
+            const firstName = values.name.split(' ')[0] || '';
+            const lastName = values.name.split(' ').slice(1).join(' ') || '';
+            
+            try {
+                // Повторно верифицируем с именем и фамилией
+                const data = await apiService.verifyOTP(effectiveEmail, '', firstName, lastName);
+                console.log('Profile updated:', data);
+                
+                if (data.access) {
+                    localStorage.setItem('accessToken', data.access);
+                    localStorage.setItem('refreshToken', data.refresh);
+                    
+                    if (data.user) {
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                    }
+                }
+                
+                message.success('Registration completed successfully!');
+                navigate("/");
+                
+            } catch (error: any) {
+                console.error('Profile update failed:', error);
+                // Если это не критично - все равно переходим
+                message.warning('Registration completed, but profile update failed. You can update it later.');
+                navigate("/");
+            }
+            
         } catch (error) {
             console.error('Registration error:', error);
-            // ✅ ИСПРАВЛЕНО: убрали message.error
+            message.error('Registration failed. Please try again.');
         } finally {
             setSubmitting(false);
+            // Очищаем временные данные
+            localStorage.removeItem('signup-email');
         }
     };
 

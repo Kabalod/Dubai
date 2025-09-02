@@ -4,7 +4,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
-from . import auth_views
+from . import auth_views_simple as auth_views
 
 # Простой корневой view
 def root_view(request):
@@ -35,13 +35,20 @@ urlpatterns = [
     # API - прямые endpoints без модулей
     path("api/health/", auth_views.health_check, name="health_check"),
     path("api/csrf/", auth_views.csrf_token_view, name="csrf_token"),
+    
+    # Новая система регистрации через OTP
     path("api/auth/register/", auth_views.register_user, name="register"),
     path("api/auth/send-otp/", auth_views.send_otp, name="send_otp"),
     path("api/auth/verify-otp/", auth_views.verify_otp, name="verify_otp"),
+    
+    # Google OAuth
     path("api/auth/google/login/", auth_views.google_auth_init, name="google_init"),
     path("api/auth/google/callback/", auth_views.google_auth_callback, name="google_callback"),
+    
+    # Логин (для совместимости)
     path("api/auth/login/", auth_views.simple_login, name="simple_login"),
-    path("api/auth/force-login/", auth_views.force_login, name="force_login"),
+    
+    # Данные
     path("api/stats/", auth_views.mock_stats, name="stats"),
     path("api/properties/", auth_views.mock_properties, name="properties"),
     

@@ -1,10 +1,11 @@
 """
-Упрощенные views ТОЛЬКО для авторизации
-Без сложных зависимостей - только Django User модель
+Полноценная система аутентификации с Google OAuth и OTP
+Поддержка регистрации через email с OTP кодами и Google OAuth
 """
 import json
 import os
 import secrets
+import requests
 from urllib.parse import urlencode
 from django.conf import settings
 from django.contrib.auth import get_user_model
@@ -12,10 +13,13 @@ from django.http import JsonResponse, HttpResponseRedirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.core.mail import send_mail
+from django.utils import timezone
+from django.db import transaction
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework_simplejwt.tokens import RefreshToken
+from .models import OTPCode, GoogleOAuthState, UserProfile
 
 User = get_user_model()
 
@@ -42,63 +46,166 @@ def health_check(request):
 @permission_classes([AllowAny])
 def google_auth_init(request):
     """Инициация Google OAuth"""
-    state = secrets.token_urlsafe(32)
-    
-    # Реальная Google OAuth URL
-    base_url = "https://accounts.google.com/o/oauth2/v2/auth"
-    params = {
-        'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
-        'redirect_uri': f"https://dubai.up.railway.app/api/auth/google/callback/",
-        'scope': 'openid email profile',
-        'response_type': 'code',
-        'state': state,
-        'access_type': 'online',
-        'prompt': 'select_account'
-    }
-    
-    auth_url = f"{base_url}?{urlencode(params)}"
-    
-    return Response({
-        'auth_url': auth_url,
-        'state': state,
-        'message': 'Click auth_url to authenticate with Google'
-    })
+    try:
+        # Создаем состояние OAuth для безопасности
+        oauth_state = GoogleOAuthState.generate_state()
+        
+        # Определяем redirect URI в зависимости от окружения
+        if settings.DEBUG:
+            redirect_uri = "http://localhost:8000/api/auth/google/callback/"
+        else:
+            redirect_uri = "https://dubai.up.railway.app/api/auth/google/callback/"
+        
+        # Создаем URL для Google OAuth
+        base_url = "https://accounts.google.com/o/oauth2/v2/auth"
+        params = {
+            'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
+            'redirect_uri': redirect_uri,
+            'scope': 'openid email profile',
+            'response_type': 'code',
+            'state': oauth_state.state,
+            'access_type': 'online',
+            'prompt': 'select_account'
+        }
+        
+        auth_url = f"{base_url}?{urlencode(params)}"
+        
+        return Response({
+            'auth_url': auth_url,
+            'state': oauth_state.state,
+            'redirect_uri': redirect_uri,
+            'message': 'Click auth_url to authenticate with Google'
+        })
+        
+    except Exception as e:
+        return Response({
+            'error': 'Failed to initialize Google OAuth',
+            'details': str(e) if settings.DEBUG else 'Please try again'
+        }, status=500)
 
 @csrf_exempt
 @require_http_methods(["GET"])
 def google_auth_callback(request):
-    """Google OAuth callback"""
+    """Google OAuth callback с реальной интеграцией"""
     code = request.GET.get('code')
+    state = request.GET.get('state')
     error = request.GET.get('error')
     
-    if error:
-        return HttpResponseRedirect(f"{settings.FRONTEND_URL}/auth#error={error}")
+    frontend_url = settings.FRONTEND_URL or "http://localhost:3000"
     
-    if not code:
-        return HttpResponseRedirect(f"{settings.FRONTEND_URL}/auth#error=no_code")
+    if error:
+        return HttpResponseRedirect(f"{frontend_url}/auth#error={error}")
+    
+    if not code or not state:
+        return HttpResponseRedirect(f"{frontend_url}/auth#error=missing_params")
     
     try:
-        # Для MVP - создаем тестового пользователя
-        user, created = User.objects.get_or_create(
-            email='testuser@gmail.com',
-            defaults={
-                'username': 'testuser@gmail.com',
-                'first_name': 'Test',
-                'last_name': 'User',
-                'is_active': True,
-            }
+        # Проверяем состояние OAuth
+        oauth_state = GoogleOAuthState.objects.filter(
+            state=state,
+            is_used=False
+        ).first()
+        
+        if not oauth_state or not oauth_state.is_valid():
+            return HttpResponseRedirect(f"{frontend_url}/auth#error=invalid_state")
+        
+        # Помечаем состояние как использованное
+        oauth_state.mark_used()
+        
+        # Обмениваем код на токены Google
+        redirect_uri = "https://dubai.up.railway.app/api/auth/google/callback/"
+        if settings.DEBUG:
+            redirect_uri = "http://localhost:8000/api/auth/google/callback/"
+            
+        token_data = {
+            'client_id': settings.GOOGLE_OAUTH_CLIENT_ID,
+            'client_secret': settings.GOOGLE_OAUTH_CLIENT_SECRET,
+            'code': code,
+            'grant_type': 'authorization_code',
+            'redirect_uri': redirect_uri,
+        }
+        
+        token_response = requests.post(
+            'https://oauth2.googleapis.com/token',
+            data=token_data,
+            timeout=10
         )
         
-        # Генерируем JWT токены
+        if not token_response.ok:
+            return HttpResponseRedirect(f"{frontend_url}/auth#error=token_exchange_failed")
+        
+        tokens = token_response.json()
+        access_token = tokens.get('access_token')
+        
+        if not access_token:
+            return HttpResponseRedirect(f"{frontend_url}/auth#error=no_access_token")
+        
+        # Получаем информацию о пользователе из Google
+        user_response = requests.get(
+            'https://www.googleapis.com/oauth2/v2/userinfo',
+            headers={'Authorization': f'Bearer {access_token}'},
+            timeout=10
+        )
+        
+        if not user_response.ok:
+            return HttpResponseRedirect(f"{frontend_url}/auth#error=user_info_failed")
+        
+        google_user = user_response.json()
+        google_id = google_user.get('id')
+        email = google_user.get('email')
+        first_name = google_user.get('given_name', '')
+        last_name = google_user.get('family_name', '')
+        
+        if not email or not google_id:
+            return HttpResponseRedirect(f"{frontend_url}/auth#error=incomplete_user_data")
+        
+        # Создаем или получаем пользователя
+        with transaction.atomic():
+            # Сначала проверяем по Google ID
+            try:
+                profile = UserProfile.objects.get(google_id=google_id)
+                user = profile.user
+                created = False
+            except UserProfile.DoesNotExist:
+                # Проверяем по email
+                user, created = User.objects.get_or_create(
+                    email=email,
+                    defaults={
+                        'username': email,
+                        'first_name': first_name,
+                        'last_name': last_name,
+                        'is_active': True
+                    }
+                )
+                
+                # Создаем или обновляем профиль
+                profile, profile_created = UserProfile.objects.get_or_create(
+                    user=user,
+                    defaults={
+                        'google_id': google_id,
+                        'email_verified': True,
+                        'registration_method': 'google_oauth'
+                    }
+                )
+                
+                if not profile_created and not profile.google_id:
+                    profile.google_id = google_id
+                    profile.email_verified = True
+                    profile.save(update_fields=['google_id', 'email_verified'])
+        
+        # Создаем JWT токены
         refresh = RefreshToken.for_user(user)
-        access_token = refresh.access_token
+        jwt_access_token = refresh.access_token
         
         # Редирект на frontend с токенами
-        redirect_url = f"{settings.FRONTEND_URL}/auth#access={access_token}&refresh={refresh}&success=true"
+        redirect_url = f"{frontend_url}/auth#access={jwt_access_token}&refresh={refresh}&success=true&method=google"
         return HttpResponseRedirect(redirect_url)
         
+    except requests.RequestException as e:
+        return HttpResponseRedirect(f"{frontend_url}/auth#error=google_api_error")
     except Exception as e:
-        return HttpResponseRedirect(f"{settings.FRONTEND_URL}/auth#error=callback_failed&details={str(e)}")
+        error_detail = str(e) if settings.DEBUG else "callback_failed"
+        return HttpResponseRedirect(f"{frontend_url}/auth#error={error_detail}")
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -137,7 +244,76 @@ def simple_login(request):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def register_user(request):
-    """Регистрация пользователя с отправкой email"""
+    """Регистрация пользователя через OTP (новый API)"""
+    try:
+        email = request.data.get('email')
+        first_name = request.data.get('first_name', '')
+        last_name = request.data.get('last_name', '')
+        
+        if not email:
+            return Response({
+                'error': 'Email is required',
+                'message': 'Registration failed'
+            }, status=400)
+        
+        # Проверяем что пользователь не существует
+        if User.objects.filter(email=email).exists():
+            return Response({
+                'error': 'User with this email already exists',
+                'message': 'Registration failed',
+                'suggestion': 'Try logging in instead'
+            }, status=400)
+        
+        # Создаем и отправляем OTP код
+        otp = OTPCode.generate_for_email(email)
+        email_sent = otp.send_email(
+            subject='Dubai Real Estate - Registration Verification',
+            template=f"""
+Hello {first_name or 'there'}!
+
+Thank you for registering with Dubai Real Estate Platform.
+
+Your verification code is: {otp.code}
+
+This code will expire in 10 minutes.
+
+After verification, you'll have access to:
+- Property listings and analytics
+- Market insights and reports
+- Advanced search filters
+
+If you didn't request this registration, please ignore this email.
+
+Best regards,
+Dubai Real Estate Team
+            """.strip()
+        )
+        
+        response_data = {
+            'message': 'Registration initiated. Please check your email for verification code.',
+            'email': email,
+            'email_sent': email_sent,
+            'next_step': 'verify_otp'
+        }
+        
+        # В режиме отладки возвращаем код
+        if settings.DEBUG:
+            response_data['otp_code'] = otp.code
+            response_data['note'] = 'DEBUG: OTP code provided for testing'
+        
+        return Response(response_data, status=201)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Registration failed',
+            'details': str(e) if settings.DEBUG else 'Please try again later'
+        }, status=500)
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def register_user_legacy(request):
+    """Старый API регистрации с паролем (для совместимости)"""
     try:
         email = request.data.get('email')
         password = request.data.get('password')
@@ -158,14 +334,22 @@ def register_user(request):
             }, status=400)
         
         # Создаем пользователя
-        user = User.objects.create_user(
-            username=email,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name,
-            is_active=True
-        )
+        with transaction.atomic():
+            user = User.objects.create_user(
+                username=email,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name,
+                is_active=True
+            )
+            
+            # Создаем профиль
+            UserProfile.objects.create(
+                user=user,
+                email_verified=True,  # считаем верифицированным при регистрации с паролем
+                registration_method='admin'  # или 'password'
+            )
         
         # Отправляем приветственное письмо
         try:
@@ -187,11 +371,10 @@ def register_user(request):
                 message=message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[email],
-                fail_silently=True,  # Не падаем если email не отправился
+                fail_silently=True,
             )
             
         except Exception as email_error:
-            # Email не отправился, но регистрация прошла успешно
             print(f"Email sending failed: {email_error}")
         
         # Генерируем токены для автоматического входа
@@ -234,43 +417,104 @@ def csrf_token_view(request):
 @permission_classes([AllowAny])
 @csrf_exempt
 def send_otp(request):
-    """Отправка OTP кода"""
+    """Отправка OTP кода на email"""
     email = request.data.get('email')
     if not email:
         return Response({'error': 'Email is required'}, status=400)
     
-    # Генерируем OTP код
-    otp_code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
-    
-    # В MVP возвращаем код в ответе (в продакшн отправлять на email)
-    return Response({
-        'message': 'OTP code sent successfully',
-        'otp_code': otp_code,  # ТОЛЬКО ДЛЯ MVP!
-        'expires_in': 600,
-        'email': email,
-        'note': 'MVP: OTP code provided in response'
-    })
+    try:
+        # Создаем или получаем OTP код
+        otp = OTPCode.generate_for_email(email)
+        
+        # Отправляем email с кодом
+        email_sent = otp.send_email(
+            subject='Dubai Real Estate - Verification Code',
+        )
+        
+        response_data = {
+            'message': 'OTP code sent successfully',
+            'email': email,
+            'expires_in': 600,  # 10 минут
+            'email_sent': email_sent
+        }
+        
+        # В режиме отладки возвращаем код в ответе для тестирования
+        if settings.DEBUG:
+            response_data['otp_code'] = otp.code
+            response_data['note'] = 'DEBUG: OTP code provided in response for testing'
+        
+        return Response(response_data)
+        
+    except Exception as e:
+        return Response({
+            'error': 'Failed to send OTP code',
+            'details': str(e) if settings.DEBUG else 'Please try again later'
+        }, status=500)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @csrf_exempt
 def verify_otp(request):
-    """Верификация OTP кода"""
+    """Верификация OTP кода и создание/вход пользователя"""
     email = request.data.get('email')
     code = request.data.get('code')
+    first_name = request.data.get('first_name', '')
+    last_name = request.data.get('last_name', '')
     
     if not email or not code:
         return Response({
             'error': 'Email and code are required'
         }, status=400)
     
-    # В MVP принимаем любой 6-значный код
-    if len(code) == 6 and code.isdigit():
-        user, created = User.objects.get_or_create(
-            email=email, 
-            defaults={'username': email}
-        )
+    try:
+        # Находим действующий OTP код
+        otp = OTPCode.objects.filter(
+            email=email,
+            is_used=False
+        ).order_by('-created_at').first()
+        
+        if not otp:
+            return Response({
+                'error': 'No valid OTP code found for this email'
+            }, status=400)
+        
+        # Верифицируем код
+        if not otp.verify(code):
+            remaining_attempts = max(0, otp.max_attempts - otp.attempts)
+            return Response({
+                'error': 'Invalid OTP code',
+                'remaining_attempts': remaining_attempts,
+                'code_expired': not otp.is_valid()
+            }, status=400)
+        
+        # Код верный - создаем или получаем пользователя
+        with transaction.atomic():
+            user, created = User.objects.get_or_create(
+                email=email,
+                defaults={
+                    'username': email,
+                    'first_name': first_name,
+                    'last_name': last_name,
+                    'is_active': True
+                }
+            )
+            
+            # Создаем или обновляем профиль
+            profile, profile_created = UserProfile.objects.get_or_create(
+                user=user,
+                defaults={
+                    'email_verified': True,
+                    'registration_method': 'email_otp'
+                }
+            )
+            
+            if not profile.email_verified:
+                profile.email_verified = True
+                profile.save(update_fields=['email_verified'])
+        
+        # Создаем JWT токены
         refresh = RefreshToken.for_user(user)
+        
         return Response({
             'message': 'OTP verified successfully',
             'access': str(refresh.access_token),
@@ -279,13 +523,18 @@ def verify_otp(request):
                 'id': user.id,
                 'email': user.email,
                 'username': user.username,
+                'first_name': user.first_name,
+                'last_name': user.last_name,
+                'email_verified': profile.email_verified,
                 'is_new_user': created
             }
         })
-    
-    return Response({
-        'error': 'Invalid OTP code'
-    }, status=400)
+        
+    except Exception as e:
+        return Response({
+            'error': 'OTP verification failed',
+            'details': str(e) if settings.DEBUG else 'Please try again'
+        }, status=500)
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
