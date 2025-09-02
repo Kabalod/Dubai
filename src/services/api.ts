@@ -68,10 +68,15 @@ class ApiService {
         });
     }
 
-    async verifyOTP(email: string, code: string) {
+    async verifyOTP(email: string, code: string, first_name?: string, last_name?: string) {
         return this.request('/api/auth/verify-otp/', {
             method: 'POST',
-            body: JSON.stringify({ email, code }),
+            body: JSON.stringify({ 
+                email, 
+                code, 
+                first_name: first_name || '', 
+                last_name: last_name || '' 
+            }),
         });
     }
 

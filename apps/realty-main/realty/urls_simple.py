@@ -4,7 +4,7 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
-from . import auth_views
+from . import auth_views_simple as auth_views
 
 # Простой корневой view
 def root_view(request):
@@ -41,7 +41,7 @@ urlpatterns = [
     path("api/auth/google/login/", auth_views.google_auth_init, name="google_init"),
     path("api/auth/google/callback/", auth_views.google_auth_callback, name="google_callback"),
     path("api/auth/login/", auth_views.simple_login, name="simple_login"),
-    path("api/auth/force-login/", auth_views.force_login, name="force_login"),
+
     path("api/stats/", auth_views.mock_stats, name="stats"),
     path("api/properties/", auth_views.mock_properties, name="properties"),
     

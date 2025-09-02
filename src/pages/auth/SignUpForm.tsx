@@ -13,7 +13,6 @@ import { apiService } from '../../services/api';
 enum FormSteps {
     Join = 'join',
     Confirm = 'confirm',
-    Details = 'details',
 }
 
 interface FieldType {
@@ -30,6 +29,7 @@ const SignUpForm: React.FC = () => {
     const [sendingOtp, setSendingOtp] = useState<boolean>(false);
     const [verifyingOtp, setVerifyingOtp] = useState<boolean>(false);
     const [resendCooldown, setResendCooldown] = useState<number>(0);
+    const { checkAuth } = useAuth(); // Добавляем checkAuth для обновления состояния
 
     // Восстанавливаем email при монтировании (если страница обновлялась)
     useEffect(() => {
@@ -48,21 +48,44 @@ const SignUpForm: React.FC = () => {
         
         try {
             setEmail(values.email as string);
-            // Сохраняем email, чтобы не потерять на шаге Complete при обновлении страницы
+            // Сохраняем email, имя и пароль, чтобы не потерять при обновлении страницы
             localStorage.setItem('signup-email', values.email as string);
-            console.log('Email set to state:', values.email);
+            localStorage.setItem('signup-name', values.name as string);
+            localStorage.setItem('signup-password', values.password as string);
+            console.log('Email and name set to state:', values.email, values.name);
             
             console.log('About to send OTP request via apiService');
             setSendingOtp(true);
             
             try {
-                const data = await apiService.sendOTP(values.email);
-                console.log('OTP sent successfully:', data);
-                setCurrentStep(FormSteps.Confirm);
-                setResendCooldown(60);
-            } catch (error) {
+                // Используем register endpoint который автоматически отправляет OTP
+                const data = await apiService.register({
+                    email: values.email,
+                    password: values.password,
+                    username: values.email,
+                    password_confirm: values.confirmPassword,
+                    first_name: values.name?.split(' ')[0] || '',
+                    last_name: values.name?.split(' ').slice(1).join(' ') || ''
+                });
+                console.log('Registration initiated, OTP sent:', data);
+                
+                if (data.email_sent) {
+                    message.success('OTP code sent to your email!');
+                    setCurrentStep(FormSteps.Confirm);
+                    setResendCooldown(60);
+                } else {
+                    console.warn('Email not sent:', data.email_error);
+                    message.warning('Registration initiated but email may not be delivered. Check the OTP code in console for testing.');
+                    setCurrentStep(FormSteps.Confirm);
+                    setResendCooldown(60);
+                }
+            } catch (error: any) {
                 console.error('Failed to send OTP:', error);
-                message.error('Failed to send OTP. Please try again.');
+                if (error.message.includes('already exists')) {
+                    message.error('User with this email already exists. Try logging in instead.');
+                } else {
+                    message.error('Failed to send OTP. Please try again.');
+                }
             }
         } catch (err) {
             console.error('Error in handleSignUp:', err);
@@ -85,18 +108,43 @@ const SignUpForm: React.FC = () => {
             
             setVerifyingOtp(true);
             try {
-                const data = await apiService.verifyOTP(email, otpCode);
+                // Получаем имена из localStorage (сохранены после первого шага)
+                const savedName = localStorage.getItem('signup-name') || '';
+                const firstName = savedName.split(' ')[0] || '';
+                const lastName = savedName.split(' ').slice(1).join(' ') || '';
+                
+                const data = await apiService.verifyOTP(email, otpCode, firstName, lastName);
                 console.log('OTP verified successfully:', data);
                 
                 // Сохраняем токены
-                if (data.tokens) {
-                    localStorage.setItem('accessToken', data.tokens.access);
-                    localStorage.setItem('refreshToken', data.tokens.refresh);
+                if (data.access && data.refresh) {
+                    localStorage.setItem('accessToken', data.access);
+                    localStorage.setItem('refreshToken', data.refresh);
                     console.log('Tokens saved to localStorage');
+                    
+                    // Сохраняем пользователя (используем 'user' ключ, как ожидает AuthContext)
+                    if (data.user) {
+                        localStorage.setItem('user', JSON.stringify(data.user));
+                    }
+                    
+                    // Регистрация завершена успешно!
+                    message.success('Registration completed successfully!');
+                    
+                    // Очищаем временные данные
+                    localStorage.removeItem('signup-email');
+                    localStorage.removeItem('signup-name');
+                    localStorage.removeItem('signup-password');
+                    
+                    // Обновляем AuthContext чтобы header показал пользователя
+                    checkAuth();
+                    
+                    // Переходим на главную страницу
+                    navigate("/");
+                    return;
                 }
                 
-                // Переходим к следующему шагу
-                setCurrentStep(FormSteps.Details);
+                // Если токенов нет - что-то пошло не так, но пользователь успешно верифицирован
+                message.warning('Registration completed but no tokens received. Please try logging in.');
             } catch (error) {
                 console.error('OTP verification failed:', error);
                 message.error('Invalid OTP code. Please try again.');
@@ -109,53 +157,7 @@ const SignUpForm: React.FC = () => {
         }
     };
 
-    const handelFinishRegister = async (values: any) => {
-        console.log('=== handelFinishRegister CALLED ===');
-        console.log('Values parameter:', values);
-        
-        try {
-            console.log("Registration data:", values);
-            console.log("Email from state:", email);
-            
-            // Подстраховка: читаем email из localStorage
-            const effectiveEmail = email || localStorage.getItem('signup-email') || '';
-            if (!effectiveEmail) {
-                console.log('No email in state, showing error');
-                // ✅ ИСПРАВЛЕНО: убрали message.error
-                return;
-            }
-            
-            console.log('About to send registration request via apiService...');
-            setSubmitting(true);
-            
-            try {
-                // Если уже есть токены после verifyOTP — считаем пользователя залогиненным
-                if (localStorage.getItem('accessToken')) {
-                    navigate("/");
-                    return;
-                }
-                // Иначе завершаем регистрацию (пароль опционален)
-                const responseData = await apiService.register({
-                    email: effectiveEmail,
-                    password: values.password || `Otp${Date.now()}!`,
-                    username: effectiveEmail,
-                    first_name: values.name.split(' ')[0] || '',
-                    last_name: values.name.split(' ').slice(1).join(' ') || '',
-                });
-                console.log('Registration successful!', responseData);
-                message.success('Registration successful!');
-                navigate("/");
-            } catch (error) {
-                console.error('Registration failed:', error);
-                message.error('Registration failed. Please try again.');
-            }
-        } catch (error) {
-            console.error('Registration error:', error);
-            // ✅ ИСПРАВЛЕНО: убрали message.error
-        } finally {
-            setSubmitting(false);
-        }
-    };
+
 
     const getCookie = (name: string) => {
         const value = `; ${document.cookie}`;
@@ -183,12 +185,31 @@ const SignUpForm: React.FC = () => {
 
             console.log('Resend OTP to:', email);
             try {
-                await apiService.sendOTP(email);
-                message.success('OTP code resent successfully!');
+                const savedName = localStorage.getItem('signup-name') || '';
+                const savedPassword = localStorage.getItem('signup-password') || '';
+                const data = await apiService.register({
+                    email: email,
+                    password: savedPassword,
+                    username: email,
+                    password_confirm: savedPassword,
+                    first_name: savedName.split(' ')[0] || '',
+                    last_name: savedName.split(' ').slice(1).join(' ') || ''
+                });
+                
+                if (data.email_sent) {
+                    message.success('OTP code resent successfully!');
+                } else {
+                    message.warning('OTP resent but email may not be delivered.');
+                }
                 setResendCooldown(60);
-            } catch (error) {
+            } catch (error: any) {
                 console.error('Failed to resend OTP:', error);
-                message.error('Failed to resend OTP. Please try again.');
+                if (error.message.includes('already exists')) {
+                    // Пользователь уже существует, но это OK для resend
+                    message.warning('User already exists. If you didn\'t receive the code, try logging in.');
+                } else {
+                    message.error('Failed to resend OTP. Please try again.');
+                }
             }
         } catch (err) {
             console.error('Resend OTP error:', err);
@@ -198,19 +219,14 @@ const SignUpForm: React.FC = () => {
 
     const steps = [
         {
-            title: 'Email',
-            icon: <MailOutlined />,
-            description: 'Enter your email',
+            title: 'Register',
+            icon: <UserOutlined />,
+            description: 'Enter your details',
         },
         {
             title: 'Verify',
             icon: <CheckCircleOutlined />,
             description: 'Verify your email',
-        },
-        {
-            title: 'Complete',
-            icon: <UserOutlined />,
-            description: 'Complete registration',
         },
     ];
 
@@ -251,6 +267,19 @@ const SignUpForm: React.FC = () => {
                         }}
                     >
                         <ProFormText
+                            name="name"
+                            label="Full Name"
+                            placeholder="Enter your full name"
+                            rules={[
+                                { required: true, message: 'Please enter your name!' }
+                            ]}
+                            fieldProps={{
+                                size: 'large',
+                                prefix: <UserOutlined />,
+                            }}
+                        />
+                        
+                        <ProFormText
                             name="email"
                             label="Email Address"
                             placeholder="Enter your email address"
@@ -261,6 +290,41 @@ const SignUpForm: React.FC = () => {
                             fieldProps={{
                                 size: 'large',
                                 prefix: <MailOutlined />,
+                            }}
+                        />
+
+                        <ProFormText.Password
+                            name="password"
+                            label="Password"
+                            placeholder="Enter your password"
+                            rules={[
+                                { required: true, message: 'Please enter your password!' },
+                                { min: 8, message: 'Password must be at least 8 characters!' }
+                            ]}
+                            fieldProps={{
+                                size: 'large',
+                                prefix: <LockOutlined />,
+                            }}
+                        />
+
+                        <ProFormText.Password
+                            name="confirmPassword"
+                            label="Confirm Password"
+                            placeholder="Confirm your password"
+                            rules={[
+                                { required: true, message: 'Please confirm your password!' },
+                                ({ getFieldValue }) => ({
+                                    validator(_, value) {
+                                        if (!value || getFieldValue('password') === value) {
+                                            return Promise.resolve();
+                                        }
+                                        return Promise.reject(new Error('Passwords do not match!'));
+                                    },
+                                }),
+                            ]}
+                            fieldProps={{
+                                size: 'large',
+                                prefix: <LockOutlined />,
                             }}
                         />
                     </ProForm>
@@ -316,86 +380,7 @@ const SignUpForm: React.FC = () => {
                     </ProForm>
                 )}
 
-                {currentStep === FormSteps.Details && (
-                    <ProForm
-                        onFinish={handelFinishRegister}
-                        submitter={{
-                            render: () => (
-                                <CustomButton
-                                    type="primary"
-                                    size="large"
-                                    htmlType="submit"
-                                    loading={submitting}
-                                    block
-                                    icon={<UserOutlined />}
-                                    className={styles.primaryButton}
-                                >
-                                    CREATE ACCOUNT
-                                </CustomButton>
-                            ),
-                        }}
-                    >
-                        <ProFormText
-                            name="name"
-                            label="Full Name"
-                            placeholder="Enter your full name"
-                            rules={[{ required: true, message: 'Please enter your name!' }]}
-                            fieldProps={{
-                                size: 'large',
-                                prefix: <UserOutlined />,
-                            }}
-                        />
 
-                        <ProFormText.Password
-                            name="password"
-                            label="Password"
-                            placeholder="Enter your password"
-                            rules={[
-                                { required: true, message: 'Please enter your password!' },
-                                { min: 8, message: 'Password must be at least 8 characters!' }
-                            ]}
-                            fieldProps={{
-                                size: 'large',
-                                prefix: <LockOutlined />,
-                            }}
-                        />
-
-                        <ProFormText.Password
-                            name="confirmPassword"
-                            label="Confirm Password"
-                            placeholder="Confirm your password"
-                            rules={[
-                                { required: true, message: 'Please confirm your password!' },
-                                ({ getFieldValue }) => ({
-                                    validator(_, value) {
-                                        if (!value || getFieldValue('password') === value) {
-                                            return Promise.resolve();
-                                        }
-                                        return Promise.reject(new Error('Passwords do not match!'));
-                                    },
-                                }),
-                            ]}
-                            fieldProps={{
-                                size: 'large',
-                                prefix: <LockOutlined />,
-                            }}
-                        />
-
-                        <ProFormCheckbox
-                            name="agreement"
-                            rules={[{ required: true, message: 'Please accept the terms!' }]}
-                        >
-                            I have read the{' '}
-                            <a href="/policy" target="_blank">
-                                policy agreement
-                            </a>
-                            {' '}and I consent to the processing of{' '}
-                            <a href="/privacy" target="_blank">
-                                personal data
-                            </a>
-                        </ProFormCheckbox>
-                    </ProForm>
-                )}
             </ProCard>
         </div>
     );

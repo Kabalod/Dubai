@@ -43,7 +43,12 @@ class ApiService {
             async (error) => {
                 const originalRequest = error.config;
 
-                if (error.response?.status === 401 && !originalRequest._retry) {
+                // Не обрабатываем 401 ошибки для login/register endpoints - это нормальные ошибки валидации
+                const isAuthEndpoint = originalRequest.url?.includes('/auth/login') || 
+                                     originalRequest.url?.includes('/auth/register') ||
+                                     originalRequest.url?.includes('/auth/verify-otp');
+
+                if (error.response?.status === 401 && !originalRequest._retry && !isAuthEndpoint) {
                     originalRequest._retry = true;
 
                     const refreshToken = localStorage.getItem('refreshToken');
@@ -80,7 +85,7 @@ class ApiService {
         console.log('🔑 ApiService login attempt with email:', email);
         
         const response = await this.api.post('/auth/login/', {
-            username: email, // ✅ ИСПРАВЛЕНО: бекенд ожидает username, но передаем email
+            email: email, // ✅ ИСПРАВЛЕНО: простой бэкенд ожидает email поле
             password,
         });
 

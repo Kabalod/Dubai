@@ -38,6 +38,7 @@ const LoginForm: React.FC = () => {
         try {
             console.log("🔑 Login attempt via AuthContext with:", values.email);
             setLoginLoading(true);
+            setErrorMessage(''); // Очищаем предыдущие ошибки
             
             // ✅ ИСПРАВЛЕНО: Используем AuthContext вместо прямого fetch
             await login(values.email, values.password);
@@ -115,7 +116,11 @@ const LoginForm: React.FC = () => {
                     <h2 className={styles.title}>
                         {t`Log in to your account`}
                     </h2>
-                    <Form onFinish={onFinish} className={styles.form}>
+                    <Form 
+                        onFinish={onFinish} 
+                        className={styles.form}
+                        onValuesChange={() => setErrorMessage('')} // Очищаем ошибку при изменении полей
+                    >
                         <Form.Item<LoginFormType>
                             name="email"
                             rules={[
@@ -144,6 +149,22 @@ const LoginForm: React.FC = () => {
                                 className={styles.input}
                             />
                         </Form.Item>
+
+                        {/* Отображение ошибки логина */}
+                        {errorMessage && (
+                            <div style={{ 
+                                color: '#ff4d4f', 
+                                marginBottom: '16px', 
+                                textAlign: 'center',
+                                fontSize: '14px',
+                                padding: '8px',
+                                backgroundColor: '#fff2f0',
+                                border: '1px solid #ffccc7',
+                                borderRadius: '6px'
+                            }}>
+                                {errorMessage}
+                            </div>
+                        )}
 
                         <Form.Item>
                             <CustomButton

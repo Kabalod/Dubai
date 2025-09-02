@@ -61,6 +61,19 @@ services:
       - DEBUG=1
       - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/dubai_realty
+      # REG.RU хостинг SMTP сервер (рабочие настройки как час назад)
+      - EMAIL_HOST=mail.kabalod.online
+      - EMAIL_PORT=587
+      - EMAIL_USE_TLS=True
+      - EMAIL_USE_SSL=False
+      - EMAIL_HOST_USER=noreply@kabalod.online
+      - EMAIL_HOST_PASSWORD=KonstantinBalod201
+      - DEFAULT_FROM_EMAIL=noreply@kabalod.online
+      # Google OAuth
+      - GOOGLE_CLIENT_ID=953035891682-d4qk05cgmfrt7h97js2971jbhdr4ef08.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=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
+      - GOOGLE_OAUTH_REDIRECT_URI=http://localhost:8000/api/auth/google/callback
+      - FRONTEND_URL=http://localhost:3000
     restart: unless-stopped
     profiles: ["backend"]
 

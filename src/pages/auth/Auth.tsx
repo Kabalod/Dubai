@@ -20,10 +20,24 @@ const Auth: React.FC = () => {
                 const params = new URLSearchParams(hash.slice(1));
                 const access = params.get("access");
                 const refresh = params.get("refresh");
+                const email = params.get("email");
                 if (access && refresh) {
                     localStorage.setItem('accessToken', access);
                     localStorage.setItem('refreshToken', refresh);
-                    // ✅ ИСПРАВЛЕНО: убрали message.success
+                    
+                    // Создаем базовые данные пользователя для Google OAuth
+                    if (email) {
+                        const userData = {
+                            email: email,
+                            username: email,
+                            // Эти поля будут получены позже при первом API запросе
+                            first_name: '',
+                            last_name: '',
+                            is_active: true
+                        };
+                        localStorage.setItem('user', JSON.stringify(userData));
+                    }
+                    
                     // Clean hash and navigate
                     window.history.replaceState(null, document.title, window.location.pathname + window.location.search);
                     window.location.href = "/";
@@ -40,7 +54,7 @@ const Auth: React.FC = () => {
             console.log('🔄 Attempting Google OAuth login to: /api/auth/google/login/');
             
             // ✅ ИСПРАВЛЕНО: Получаем auth_url от backend и редиректим
-            const resp = await fetch('/api/auth/google/login/', {
+            const resp = await fetch('http://localhost:8000/api/auth/google/login/', {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
@@ -177,7 +191,7 @@ const Auth: React.FC = () => {
 
                     <Divider>or</Divider>
 
-                    {authType === "login" ? <SignUpForm /> : <SignUpForm />}
+                    {authType === "login" ? <LoginForm /> : <SignUpForm />}
 
                     {/* Демокнопку не показываем в боевом режиме */}
                     {DEMO_MODE && (
