@@ -121,7 +121,15 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Email настройки для отправки писем с поддержкой SendGrid
 _sendgrid_key = os.environ.get('SENDGRID_API_KEY')
 
+# Определяем среду выполнения
+IS_RAILWAY = os.environ.get('RAILWAY_ENVIRONMENT_NAME') is not None
+IS_PRODUCTION = os.environ.get('NODE_ENV') == 'production' or IS_RAILWAY
+
+print(f"🔍 Среда выполнения: {'Railway Production' if IS_RAILWAY else 'Local Development'}")
+
 if _sendgrid_key:
+    print(f"📧 Настройка SendGrid email backend с ключом: {_sendgrid_key[:20]}...")
+    
     # Используем SendGrid через anymail
     EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
     ANYMAIL = {
@@ -130,19 +138,44 @@ if _sendgrid_key:
         "SENDGRID_MERGE_FIELD_FORMAT": "-{}-",
         "SENDGRID_API_URL": "https://api.sendgrid.com/v3/",
     }
-    INSTALLED_APPS.append('anymail')
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Dubai Real Estate <noreply@kabalod.online>')
-else:
-    # Fallback к SMTP
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'mail.kabalod.online')
-    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
-    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
-    EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
-    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'noreply@kabalod.online')
-    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Dubai Real Estate <noreply@kabalod.online>')
     
-    # Если нет настроек SMTP - используем console backend для development
-    if not EMAIL_HOST_PASSWORD:
-        EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    # Добавляем anymail если ещё не добавлено
+    if 'anymail' not in INSTALLED_APPS:
+        INSTALLED_APPS.append('anymail')
+    
+    # Настройка FROM email для продакшна
+    if IS_PRODUCTION:
+        # В продакшне используем домен проекта
+        DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Dubai Real Estate <noreply@kabalod.online>')
+    else:
+        # В development можно использовать любой верифицированный email
+        DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Dubai Real Estate <noreply@yourdomain.com>')
+    
+    print(f"✅ SendGrid настроен для {'Production' if IS_PRODUCTION else 'Development'}")
+    print(f"✅ From email: {DEFAULT_FROM_EMAIL}")
+    
+else:
+    # Fallback настройки
+    EMAIL_HOST = os.environ.get('EMAIL_HOST', '')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+    
+    if EMAIL_HOST and EMAIL_HOST_PASSWORD:
+        print(f"📧 Настройка SMTP email backend: {EMAIL_HOST}")
+        EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+        EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+        EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
+        EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
+        EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+        DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', f'Dubai Real Estate <{EMAIL_HOST_USER}>')
+        print(f"✅ SMTP настроен. From email: {DEFAULT_FROM_EMAIL}")
+    else:
+        if IS_PRODUCTION:
+            print("❌ ВНИМАНИЕ: В продакшне нет настроек email! Добавьте SENDGRID_API_KEY в Railway")
+            # В продакшне без email настроек используем console backend для отладки
+            EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+        else:
+            print("📧 Development: используем file backend для сохранения писем")
+            EMAIL_BACKEND = 'django.core.mail.backends.filebased.EmailBackend'
+            EMAIL_FILE_PATH = '/tmp/emails'
+        
+        DEFAULT_FROM_EMAIL = 'Dubai Real Estate <noreply@example.com>'
