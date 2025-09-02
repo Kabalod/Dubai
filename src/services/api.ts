@@ -60,45 +60,25 @@ class ApiService {
         return response.json();
     }
 
-    // Аутентификация через OTP
+    // Аутентификация
     async sendOTP(email: string) {
-        console.log('🔐 Sending OTP to:', email);
         return this.request('/api/auth/send-otp/', {
             method: 'POST',
             body: JSON.stringify({ email }),
         });
     }
 
-    async verifyOTP(email: string, code: string, first_name?: string, last_name?: string) {
-        console.log('🔐 Verifying OTP for:', email, 'code:', code);
+    async verifyOTP(email: string, code: string) {
         return this.request('/api/auth/verify-otp/', {
             method: 'POST',
-            body: JSON.stringify({ 
-                email, 
-                code, 
-                first_name: first_name || '', 
-                last_name: last_name || '' 
-            }),
+            body: JSON.stringify({ email, code }),
         });
     }
 
     async register(userData: any) {
-        console.log('🔐 Starting registration for:', userData.email);
         return this.request('/api/auth/register/', {
             method: 'POST',
-            body: JSON.stringify({
-                email: userData.email,
-                first_name: userData.first_name || '',
-                last_name: userData.last_name || ''
-            }),
-        });
-    }
-
-    // Google OAuth
-    async getGoogleAuthUrl() {
-        console.log('🔐 Getting Google OAuth URL');
-        return this.request('/api/auth/google/login/', {
-            method: 'GET',
+            body: JSON.stringify(userData),
         });
     }
 

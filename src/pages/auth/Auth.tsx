@@ -37,27 +37,28 @@ const Auth: React.FC = () => {
     const handleGoogleLogin = async () => {
         try {
             setGoogleLoading(true);
-            console.log('🔄 Attempting Google OAuth login...');
+            console.log('🔄 Attempting Google OAuth login to: /api/auth/google/login/');
             
-            // Используем наш apiService для получения Google OAuth URL
-            const data = await fetch('http://localhost:8000/api/auth/google/login/', {
+            // ✅ ИСПРАВЛЕНО: Получаем auth_url от backend и редиректим
+            const resp = await fetch('/api/auth/google/login/', {
                 method: 'GET',
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
                 },
+                credentials: 'include',
             });
             
-            if (!data.ok) {
-                throw new Error(`Server error: ${data.status}`);
+            if (!resp.ok) {
+                throw new Error(`Server error: ${resp.status}`);
             }
             
-            const response = await data.json();
-            console.log('📦 Google OAuth response:', response);
+            const data = await resp.json();
+            console.log('📦 Google OAuth response:', data);
             
-            if (response.auth_url) {
-                console.log('🔗 Redirecting to Google OAuth:', response.auth_url);
-                window.location.href = response.auth_url;
+            if (data.auth_url) {
+                console.log('🔗 Redirecting to Google OAuth:', data.auth_url);
+                window.location.href = data.auth_url;
             } else {
                 throw new Error('auth_url missing from response');
             }
@@ -176,7 +177,7 @@ const Auth: React.FC = () => {
 
                     <Divider>or</Divider>
 
-                    {authType === "login" ? <LoginForm /> : <SignUpForm />}
+                    {authType === "login" ? <SignUpForm /> : <SignUpForm />}
 
                     {/* Демокнопку не показываем в боевом режиме */}
                     {DEMO_MODE && (

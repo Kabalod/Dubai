@@ -25,11 +25,6 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
 ]
 
-# Добавим anymail если есть SENDGRID_API_KEY
-_sendgrid_key = os.environ.get('SENDGRID_API_KEY')
-if _sendgrid_key:
-    INSTALLED_APPS.append('anymail')
-
 # Минимальный middleware
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -118,31 +113,16 @@ USE_TZ = True
 # Primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-# Email настройки для отправки писем с поддержкой SendGrid
-_sendgrid_key = os.environ.get('SENDGRID_API_KEY')
+# Email настройки для отправки писем
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.environ.get('EMAIL_HOST', 'mail.kabalod.online')
+EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
+EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'noreply@kabalod.online')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Dubai Real Estate <noreply@kabalod.online>')
 
-if _sendgrid_key:
-    # Используем SendGrid через anymail
-    EMAIL_BACKEND = 'anymail.backends.sendgrid.EmailBackend'
-    ANYMAIL = {
-        "SENDGRID_API_KEY": _sendgrid_key,
-        "SENDGRID_GENERATE_MESSAGE_ID": True,
-        "SENDGRID_MERGE_FIELD_FORMAT": "-{}-",
-        "SENDGRID_API_URL": "https://api.sendgrid.com/v3/",
-    }
-    INSTALLED_APPS.append('anymail')
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Dubai Real Estate <noreply@kabalod.online>')
-else:
-    # Fallback к SMTP
-    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-    EMAIL_HOST = os.environ.get('EMAIL_HOST', 'mail.kabalod.online')
-    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
-    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True').lower() == 'true'
-    EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False').lower() == 'true'
-    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'noreply@kabalod.online')
-    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
-    DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'Dubai Real Estate <noreply@kabalod.online>')
-    
-    # Если нет настроек SMTP - используем console backend для development
-    if not EMAIL_HOST_PASSWORD:
-        EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Если нет настроек SMTP - используем console backend для development
+if not EMAIL_HOST_PASSWORD:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
