@@ -61,15 +61,6 @@ services:
       - DEBUG=1
       - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
       - DATABASE_URL=postgres://postgres:postgres@postgres:5432/dubai_realty
-      # Email настройки (можно переопределить в .env файле)
-      - EMAIL_HOST=${EMAIL_HOST:-}
-      - EMAIL_PORT=${EMAIL_PORT:-587}
-      - EMAIL_USE_TLS=${EMAIL_USE_TLS:-True}
-      - EMAIL_HOST_USER=${EMAIL_HOST_USER:-}
-      - EMAIL_HOST_PASSWORD=${EMAIL_HOST_PASSWORD:-}
-      - DEFAULT_FROM_EMAIL=${DEFAULT_FROM_EMAIL:-Dubai Real Estate <noreply@example.com>}
-      # SendGrid настройки (ПРИОРИТЕТ над SMTP)
-      - SENDGRID_API_KEY=${SENDGRID_API_KEY:-}
     restart: unless-stopped
     profiles: ["backend"]
 

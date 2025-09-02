@@ -86,14 +86,6 @@ Dubai Real Estate Team
         
         email_sent = True
         try:
-            # Детальное логирование
-            print(f"📧 Отправляем OTP email на {email} с кодом: {otp_code}")
-            print(f"📧 From email: {settings.DEFAULT_FROM_EMAIL}")
-            print(f"📧 Email backend: {settings.EMAIL_BACKEND}")
-            
-            if hasattr(settings, 'ANYMAIL') and settings.ANYMAIL.get('SENDGRID_API_KEY'):
-                print(f"📧 SendGrid API Key: {settings.ANYMAIL['SENDGRID_API_KEY'][:20]}...")
-            
             send_mail(
                 subject=subject,
                 message=message,
@@ -101,18 +93,9 @@ Dubai Real Estate Team
                 recipient_list=[email],
                 fail_silently=False,
             )
-            print(f"✅ OTP email успешно отправлен на {email}")
-            
         except Exception as e:
             email_sent = False
-            print(f"❌ Ошибка отправки OTP email: {e}")
-            print(f"❌ Тип ошибки: {type(e).__name__}")
-            
-            if 'sendgrid' in str(e).lower() or 'forbidden' in str(e).lower():
-                print("❌ Возможные причины SendGrid ошибки:")
-                print("   - Неверный API ключ")
-                print("   - From email не верифицирован в SendGrid")
-                print("   - Недостаточно прав у API ключа")
+            print(f"Failed to send OTP email to {email}: {e}")
         
         response_data = {
             'message': 'OTP code sent successfully',
@@ -121,16 +104,10 @@ Dubai Real Estate Team
             'email_sent': email_sent
         }
         
-        # Определяем когда показывать OTP код
-        is_production = os.environ.get('RAILWAY_ENVIRONMENT_NAME') is not None
-        
-        # В DEBUG режиме или когда используется file backend добавляем OTP код
-        if settings.DEBUG and not is_production:
+        # В режиме отладки возвращаем код
+        if settings.DEBUG:
             response_data['otp_code'] = otp_code
             response_data['note'] = 'DEBUG: OTP code provided for testing'
-        elif 'filebased' in settings.EMAIL_BACKEND:
-            response_data['otp_code'] = otp_code
-            response_data['note'] = 'Development: OTP code (check /tmp/emails/ for email content)'
         
         return Response(response_data)
         
@@ -406,29 +383,22 @@ def register_user(request):
         
         # Отправляем email
         email_sent = True
-        email_error = None
-        
         try:
-            subject = 'Dubai Real Estate - Verification Code'
-            message = f"""Hello{' ' + first_name if first_name else ''}!
+            subject = 'Dubai Real Estate - Registration Verification'
+            message = f"""
+Hello {first_name or 'there'}!
 
-Your verification code for Dubai Real Estate Platform is: {otp_code}
+Thank you for registering with Dubai Real Estate Platform.
+
+Your verification code is: {otp_code}
 
 This code will expire in 10 minutes.
 
-If you didn't request this code, please ignore this email.
+If you didn't request this registration, please ignore this email.
 
 Best regards,
-Dubai Real Estate Team""".strip()
-            
-            # Детальное логирование для диагностики
-            print(f"📧 Отправляем email на {email} с OTP: {otp_code}")
-            print(f"📧 From email: {settings.DEFAULT_FROM_EMAIL}")
-            print(f"📧 Email backend: {settings.EMAIL_BACKEND}")
-            
-            # Проверяем наличие SendGrid настроек
-            if hasattr(settings, 'ANYMAIL') and settings.ANYMAIL.get('SENDGRID_API_KEY'):
-                print(f"📧 SendGrid API Key: {settings.ANYMAIL['SENDGRID_API_KEY'][:20]}...")
+Dubai Real Estate Team
+            """.strip()
             
             send_mail(
                 subject=subject,
@@ -437,44 +407,21 @@ Dubai Real Estate Team""".strip()
                 recipient_list=[email],
                 fail_silently=False,
             )
-            print(f"✅ Email успешно отправлен на {email}")
-            
         except Exception as e:
-            print(f"❌ Ошибка отправки email: {e}")
-            print(f"❌ Тип ошибки: {type(e).__name__}")
-            
-            # Дополнительная диагностика для SendGrid ошибок
-            if 'sendgrid' in str(e).lower() or 'forbidden' in str(e).lower():
-                print("❌ Возможные причины SendGrid ошибки:")
-                print("   - Неверный API ключ")
-                print("   - From email не верифицирован в SendGrid")
-                print("   - Недостаточно прав у API ключа")
-            
             email_sent = False
-            email_error = str(e)
+            print(f"Failed to send registration email to {email}: {e}")
         
         response_data = {
             'message': 'Registration initiated. Please check your email for verification code.',
             'email': email,
             'email_sent': email_sent,
-            'next_step': 'verify_otp',
-            'expires_in': 600
+            'next_step': 'verify_otp'
         }
         
-        # Определяем когда показывать OTP код
-        is_production = os.environ.get('RAILWAY_ENVIRONMENT_NAME') is not None
-        
-        # В DEBUG режиме или когда используется file backend добавляем OTP код
-        if settings.DEBUG and not is_production:
+        # В режиме отладки возвращаем код
+        if settings.DEBUG:
             response_data['otp_code'] = otp_code
             response_data['note'] = 'DEBUG: OTP code provided for testing'
-        elif 'filebased' in settings.EMAIL_BACKEND:
-            response_data['otp_code'] = otp_code
-            response_data['note'] = 'Development: OTP code (check /tmp/emails/ for email content)'
-        
-        # Добавляем информацию об ошибке если есть (только для разработки)
-        if email_error and not is_production:
-            response_data['email_error'] = email_error
         
         return Response(response_data, status=201)
         
