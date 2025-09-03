@@ -1,18 +1,20 @@
 # 🔥 Railway Django Backend Dockerfile - ТОЛЬКО для авторизации
 # Минимальный Django Dockerfile для Railway deployment
-# ФИНАЛЬНАЯ ВЕРСИЯ - ИСПРАВЛЕНА ПРОБЛЕМА С auth_views_simple
+# EMERGENCY FIX - КРИТИЧНОЕ ИСПРАВЛЕНИЕ auth_views_simple
 FROM python:3.11-slim
 
-# Принудительная очистка кеша - FORCE REBUILD v7 - FINAL
-ARG CACHE_BUST=2025-01-30-07-00-FORCE-REBUILD-v7-FINAL
+# Принудительная очистка кеша - EMERGENCY REBUILD v8
+ARG CACHE_BUST=2025-01-30-08-00-EMERGENCY-REBUILD-v8
 ENV CACHE_BUST=${CACHE_BUST}
 
-# Метки для идентификации
-LABEL cache-bust="2025-01-30-07-00-FORCE-REBUILD-v7-FINAL"
+# Метки для идентификации - ДОЛЖНЫ БЫТЬ ВИДНЫ RAILWAY
+LABEL cache-bust="2025-01-30-08-00-EMERGENCY-REBUILD-v8"
 LABEL service="django-backend"
 LABEL auth-only="true"
 LABEL railway-deployment="true"
-LABEL auth-views-simple="FIXED"
+LABEL auth-views-simple="EMERGENCY-FIXED"
+LABEL build-timestamp="2025-01-30-16-00"
+LABEL commit-hash="3c97fa6"
 
 # Системные зависимости (минимум)
 RUN apt-get update && apt-get install -y \
@@ -38,6 +40,16 @@ COPY apps/realty-main/realty/settings_railway.py ./realty/
 COPY apps/realty-main/realty/urls_simple.py ./realty/
 COPY apps/realty-main/realty/auth_views_simple.py ./realty/  # RAILWAY: ЭТОТ ФАЙЛ ОБЯЗАТЕЛЬНО!
 COPY apps/realty-main/realty/wsgi.py ./realty/
+
+# ПРОВЕРКА: Убедимся что правильный файл скопирован (для Railway)
+RUN ls -la ./realty/ | grep auth_views && \
+    echo "RAILWAY: Проверяем наличие auth_views_simple.py..." && \
+    if [ -f "./realty/auth_views_simple.py" ]; then \
+        echo "✅ RAILWAY: auth_views_simple.py найден!"; \
+    else \
+        echo "❌ RAILWAY: auth_views_simple.py НЕ найден!"; \
+        exit 1; \
+    fi
 
 # Environment variables
 ENV PYTHONPATH=/app
