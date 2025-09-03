@@ -1,14 +1,15 @@
 # 🔥 Railway Django Backend Dockerfile - ТОЛЬКО для авторизации
 # Минимальный Django Dockerfile для Railway deployment
-# ULTIMATE FIX - ПОСЛЕДНЕЕ ИСПРАВЛЕНИЕ auth_views_simple
+# FINAL FIX v10 - КРИТИЧНОЕ ИСПРАВЛЕНИЕ auth_views_simple
+# RAILWAY: Этот файл ОБЯЗАТЕЛЬНО должен быть найден и использован
 FROM python:3.11-slim
 
-# Принудительная очистка кеша - ULTIMATE REBUILD v9
-ARG CACHE_BUST=2025-01-30-09-00-ULTIMATE-REBUILD-v9
+# Принудительная очистка кеша - FINAL REBUILD v10
+ARG CACHE_BUST=2025-01-30-10-00-FINAL-REBUILD-v10
 ENV CACHE_BUST=${CACHE_BUST}
 
 # Метки для идентификации - ДОЛЖНЫ БЫТЬ ВИДНЫ RAILWAY
-LABEL cache-bust="2025-01-30-09-00-ULTIMATE-REBUILD-v9"
+LABEL cache-bust="2025-01-30-10-00-FINAL-REBUILD-v10"
 LABEL service="django-backend"
 LABEL auth-only="true"
 LABEL railway-deployment="true"
