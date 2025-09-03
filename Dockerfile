@@ -2,12 +2,12 @@
 # Минимальный Django Dockerfile для Railway deployment
 FROM python:3.11-slim
 
-# Принудительная очистка кеша - FORCE REBUILD
-ARG CACHE_BUST=2025-01-30-02-15-FORCE-REBUILD
+# Принудительная очистка кеша - FORCE REBUILD v3
+ARG CACHE_BUST=2025-01-30-03-00-FORCE-REBUILD-v3
 ENV CACHE_BUST=${CACHE_BUST}
 
 # Метки для идентификации
-LABEL cache-bust="2025-01-30-02-15-FORCE-REBUILD"
+LABEL cache-bust="2025-01-30-03-00-FORCE-REBUILD-v3"
 LABEL service="django-backend"
 LABEL auth-only="true"
 LABEL railway-deployment="true"
@@ -24,6 +24,9 @@ WORKDIR /app
 COPY apps/realty-main/requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
+
+# Создаем директорию realty перед копированием
+RUN mkdir -p ./realty
 
 # Копируем ТОЛЬКО необходимые файлы для авторизации из apps/realty-main/
 # ВАЖНО: Используем auth_views_simple.py, а НЕ auth_views.py!
