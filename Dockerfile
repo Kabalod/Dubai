@@ -17,7 +17,10 @@ LABEL build-timestamp="2025-01-30-17-30"
 LABEL commit-hash="558e601"
 LABEL emergency-rebuild="true"
 LABEL webhook-trigger="force"
-LABEL dockerfile-version="brand-new-v11"
+LABEL dockerfile-version="brand-new-v12"
+LABEL conflict-resolved="true"
+LABEL auth-views-py-removed="true"
+LABEL force-trigger="railway-force-deploy.txt"
 
 # System dependencies
 RUN apt-get update && apt-get install -y \
