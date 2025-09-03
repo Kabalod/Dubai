@@ -2,12 +2,12 @@
 # Минимальный Django Dockerfile для Railway deployment
 FROM python:3.11-slim
 
-# Принудительная очистка кеша - FORCE REBUILD v3
-ARG CACHE_BUST=2025-01-30-03-00-FORCE-REBUILD-v3
+# Принудительная очистка кеша - FORCE REBUILD v4
+ARG CACHE_BUST=2025-01-30-04-00-FORCE-REBUILD-v4
 ENV CACHE_BUST=${CACHE_BUST}
 
 # Метки для идентификации
-LABEL cache-bust="2025-01-30-03-00-FORCE-REBUILD-v3"
+LABEL cache-bust="2025-01-30-04-00-FORCE-REBUILD-v4"
 LABEL service="django-backend"
 LABEL auth-only="true"
 LABEL railway-deployment="true"
@@ -34,7 +34,7 @@ COPY apps/realty-main/manage.py .
 COPY apps/realty-main/realty/__init__.py ./realty/
 COPY apps/realty-main/realty/settings_railway.py ./realty/
 COPY apps/realty-main/realty/urls_simple.py ./realty/
-COPY apps/realty-main/realty/auth_views_simple.py ./realty/  # ← КОРРЕКТНЫЙ ФАЙЛ
+COPY apps/realty-main/realty/auth_views_simple.py ./realty/  # CORRECT FILE
 COPY apps/realty-main/realty/wsgi.py ./realty/
 
 # Environment variables
