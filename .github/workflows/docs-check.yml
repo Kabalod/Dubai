@@ -127,7 +127,7 @@ jobs:
           mkdocs build --strict
           
       - name: Upload documentation artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: documentation
           path: site/
@@ -154,7 +154,7 @@ jobs:
           python scripts/generate-docs-report.py
           
       - name: Upload report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: documentation-report
           path: docs-report.html
