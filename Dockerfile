@@ -1,25 +1,25 @@
-# 🔥 Railway Django Backend Dockerfile - ТОЛЬКО для авторизации
-# Минимальный Django Dockerfile для Railway deployment
-# FINAL FIX v10 - КРИТИЧНОЕ ИСПРАВЛЕНИЕ auth_views_simple
-# RAILWAY: Этот файл ОБЯЗАТЕЛЬНО должен быть найден и использован
+# 🔥 BRAND NEW Railway Django Dockerfile - FINAL SOLUTION
+# Полностью новый файл для Railway deployment
+# CRITICAL: auth_views_simple.py MUST BE USED
 FROM python:3.11-slim
 
-# Принудительная очистка кеша - FINAL REBUILD v10
-ARG CACHE_BUST=2025-01-30-10-00-FINAL-REBUILD-v10
+# FORCE REBUILD v11 - BRAND NEW
+ARG CACHE_BUST=2025-01-30-11-00-BRAND-NEW-v11
 ENV CACHE_BUST=${CACHE_BUST}
 
-# Метки для идентификации - ДОЛЖНЫ БЫТЬ ВИДНЫ RAILWAY
-LABEL cache-bust="2025-01-30-10-00-FINAL-REBUILD-v10"
+# CRITICAL LABELS FOR RAILWAY
+LABEL cache-bust="2025-01-30-11-00-BRAND-NEW-v11"
 LABEL service="django-backend"
 LABEL auth-only="true"
 LABEL railway-deployment="true"
-LABEL auth-views-simple="ULTIMATE-FIXED"
-LABEL build-timestamp="2025-01-30-16-30"
-LABEL commit-hash="4d5e5f8"
+LABEL auth-views-simple="REQUIRED"
+LABEL build-timestamp="2025-01-30-17-00"
+LABEL commit-hash="303a416"
 LABEL emergency-rebuild="true"
 LABEL webhook-trigger="force"
+LABEL dockerfile-version="brand-new-v11"
 
-# Системные зависимости (минимум)
+# System dependencies
 RUN apt-get update && apt-get install -y \
     gcc \
     libpq-dev \
@@ -27,30 +27,32 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Копируем requirements.txt сначала
+# Copy requirements first
 COPY apps/realty-main/requirements.txt .
-
-# Минимальные Python зависимости
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Копируем ТОЛЬКО необходимые файлы для авторизации из apps/realty-main/
-# ВАЖНО: Используем auth_views_simple.py, а НЕ auth_views.py!
-# RAILWAY: Обязательно скопировать ТОЛЬКО auth_views_simple.py!
+# CRITICAL: Copy Django files - auth_views_simple.py MUST BE INCLUDED
 COPY apps/realty-main/manage.py .
+RUN mkdir -p ./realty
+
+# Copy each file individually to ensure auth_views_simple.py is included
 COPY apps/realty-main/realty/__init__.py ./realty/
 COPY apps/realty-main/realty/settings_railway.py ./realty/
 COPY apps/realty-main/realty/urls_simple.py ./realty/
-COPY apps/realty-main/realty/auth_views_simple.py ./realty/  # RAILWAY: ЭТОТ ФАЙЛ ОБЯЗАТЕЛЬНО!
+COPY apps/realty-main/realty/auth_views_simple.py ./realty/
 COPY apps/realty-main/realty/wsgi.py ./realty/
 
-# ПРОВЕРКА: Убедимся что правильный файл скопирован (для Railway)
-RUN ls -la ./realty/ | grep auth_views && \
-    echo "RAILWAY: Проверяем наличие auth_views_simple.py..." && \
+# VERIFY: Check that the correct file was copied
+RUN echo "=== RAILWAY VERIFICATION ===" && \
+    ls -la ./realty/ && \
+    echo "Checking for auth_views_simple.py..." && \
     if [ -f "./realty/auth_views_simple.py" ]; then \
-        echo "✅ RAILWAY: auth_views_simple.py найден!"; \
+        echo "✅ SUCCESS: auth_views_simple.py found!"; \
+        ls -la ./realty/auth_views_simple.py; \
     else \
-        echo "❌ RAILWAY: auth_views_simple.py НЕ найден!"; \
+        echo "❌ FAILED: auth_views_simple.py NOT found!"; \
+        ls -la ./realty/; \
         exit 1; \
     fi
 
@@ -59,14 +61,19 @@ ENV PYTHONPATH=/app
 ENV DJANGO_SETTINGS_MODULE=realty.settings_railway
 ENV PYTHONUNBUFFERED=1
 
-# Создаем базу данных
-RUN python manage.py migrate
+# Run migrations
+RUN echo "=== STARTING MIGRATIONS ===" && \
+    python manage.py migrate
 
-# Создаем админа (опционально)
+# Create superuser
 RUN echo "from django.contrib.auth import get_user_model; User = get_user_model(); User.objects.create_superuser('admin', 'admin@test.com', 'admin123') if not User.objects.filter(username='admin').exists() else None" | python manage.py shell
 
-# Порт
+# Final verification
+RUN echo "=== FINAL VERIFICATION ===" && \
+    ls -la ./realty/auth_views_simple.py && \
+    echo "✅ BUILD SUCCESSFUL: auth_views_simple.py is present"
+
 EXPOSE 8000
 
-# Запуск с Railway PORT переменной
+# Start Gunicorn
 CMD ["sh", "-c", "gunicorn realty.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2 --access-logfile - --error-logfile - --log-level debug"]
