@@ -4,7 +4,7 @@
 # ЗАМЕНЕН nginx на Caddy для простоты
 # MVP-146: FINAL FORCE REBUILD - CACHE_BUST=134
 
-FROM node:20-bullseye-slim
+FROM node:24-bullseye-slim
 
 # Принудительная очистка кеша
 ARG CACHE_BUST=134
