@@ -37,7 +37,7 @@ jobs:
           ./scripts/export-jira.ps1 -Project $proj -Output 'docs/jira-tasks.md'
 
       - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v5
+        uses: stefanzweifel/git-auto-commit-action@v6
         with:
           commit_message: "chore(jira): auto-update docs/jira-tasks.md"
           commit_user_name: github-actions[bot]
