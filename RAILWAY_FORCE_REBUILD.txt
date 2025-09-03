@@ -1,0 +1,14 @@
+# RAILWAY EMERGENCY FORCE REBUILD
+# This file should force Railway to notice changes
+# Created: 2025-01-30 18:30 UTC
+# Commit: f87a202
+# Purpose: Force Railway to see our latest changes
+
+EMERGENCY_FORCE_REBUILD=true
+FILE_CONFLICT_FIXED=true
+AUTH_VIEWS_PY_DELETED=true
+USE_AUTH_VIEWS_SIMPLE=true
+LATEST_COMMIT=f87a202
+DOCKERFILE_VERSION=ultimate-v13
+TIMESTAMP=2025-01-30T18:30:00Z
+WEBHOOK_FORCE_TRIGGER=true
