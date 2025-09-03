@@ -3,18 +3,18 @@
 # CRITICAL: auth_views_simple.py MUST BE USED
 FROM python:3.11-slim
 
-# FORCE REBUILD v11 - BRAND NEW
-ARG CACHE_BUST=2025-01-30-11-00-BRAND-NEW-v11
+# FORCE REBUILD v12 - AFTER FILE CONFLICT FIX
+ARG CACHE_BUST=2025-01-30-12-00-AFTER-CONFLICT-FIX-v12
 ENV CACHE_BUST=${CACHE_BUST}
 
 # CRITICAL LABELS FOR RAILWAY
-LABEL cache-bust="2025-01-30-11-00-BRAND-NEW-v11"
+LABEL cache-bust="2025-01-30-12-00-AFTER-CONFLICT-FIX-v12"
 LABEL service="django-backend"
 LABEL auth-only="true"
 LABEL railway-deployment="true"
 LABEL auth-views-simple="REQUIRED"
-LABEL build-timestamp="2025-01-30-17-00"
-LABEL commit-hash="303a416"
+LABEL build-timestamp="2025-01-30-17-30"
+LABEL commit-hash="558e601"
 LABEL emergency-rebuild="true"
 LABEL webhook-trigger="force"
 LABEL dockerfile-version="brand-new-v11"
