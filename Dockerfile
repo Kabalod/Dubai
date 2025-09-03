@@ -2,12 +2,12 @@
 # Минимальный Django Dockerfile для Railway deployment
 FROM python:3.11-slim
 
-# Принудительная очистка кеша - FORCE REBUILD v4
-ARG CACHE_BUST=2025-01-30-04-00-FORCE-REBUILD-v4
+# Принудительная очистка кеша - FORCE REBUILD v5
+ARG CACHE_BUST=2025-01-30-05-00-FORCE-REBUILD-v5
 ENV CACHE_BUST=${CACHE_BUST}
 
 # Метки для идентификации
-LABEL cache-bust="2025-01-30-04-00-FORCE-REBUILD-v4"
+LABEL cache-bust="2025-01-30-05-00-FORCE-REBUILD-v5"
 LABEL service="django-backend"
 LABEL auth-only="true"
 LABEL railway-deployment="true"
@@ -20,22 +20,18 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-# Минимальные Python зависимости
+# Копируем requirements.txt сначала
 COPY apps/realty-main/requirements.txt .
+
+# Минимальные Python зависимости
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Создаем директорию realty перед копированием
-RUN mkdir -p ./realty
-
 # Копируем ТОЛЬКО необходимые файлы для авторизации из apps/realty-main/
 # ВАЖНО: Используем auth_views_simple.py, а НЕ auth_views.py!
+# Директория realty будет создана автоматически при копировании
 COPY apps/realty-main/manage.py .
-COPY apps/realty-main/realty/__init__.py ./realty/
-COPY apps/realty-main/realty/settings_railway.py ./realty/
-COPY apps/realty-main/realty/urls_simple.py ./realty/
-COPY apps/realty-main/realty/auth_views_simple.py ./realty/  # CORRECT FILE
-COPY apps/realty-main/realty/wsgi.py ./realty/
+COPY apps/realty-main/realty/ ./realty/
 
 # Environment variables
 ENV PYTHONPATH=/app
