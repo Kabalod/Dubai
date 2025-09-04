@@ -73,6 +73,29 @@ else:
         }
     }
 
+# Cache настройки - Redis для Railway, локальный для разработки
+REDIS_URL = os.environ.get('REDIS_URL')
+if REDIS_URL:
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.redis.RedisCache',
+            'LOCATION': REDIS_URL,
+            'OPTIONS': {
+                'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+            }
+        }
+    }
+    print(f"🗄️ Настроен Redis кэш: {REDIS_URL}")
+else:
+    # Fallback к локальному кэшу
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+            'LOCATION': 'unique-snowflake',
+        }
+    }
+    print(f"🗄️ Настроен локальный кэш (fallback)")
+
 # REST Framework для JWT
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [

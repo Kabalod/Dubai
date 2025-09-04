@@ -20,3 +20,4 @@ strawberry-graphql-django>=0.9.3
 python-dateutil>=2.8.2
 stripe>=7.0.0
 django-anymail>=12.0
+django-redis>=5.4.0

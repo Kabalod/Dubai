@@ -158,9 +158,12 @@ def verify_otp(request):
     try:
         # Получаем данные из cache
         cache_key = OTP_CACHE_KEY.format(email=email)
+        print(f"🔍 Ищем OTP в кэше: {cache_key}")
         cache_data = cache.get(cache_key)
+        print(f"🔍 Данные из кэша: {cache_data}")
         
         if not cache_data:
+            print(f"❌ OTP не найден в кэше для {email}")
             return Response({
                 'error': 'No valid OTP code found for this email or code expired'
             }, status=400)
@@ -283,7 +286,10 @@ def register_user(request):
             'max_attempts': 3,
             'created_at': timezone.now().isoformat()
         }
+        print(f"💾 Сохраняем OTP в кэш: {cache_key}")
+        print(f"💾 Данные для кэша: {cache_data}")
         cache.set(cache_key, cache_data, timeout=600)  # 10 минут
+        print(f"✅ OTP сохранен в кэш на 10 минут")
         
         # Отправляем email
         email_sent = True
