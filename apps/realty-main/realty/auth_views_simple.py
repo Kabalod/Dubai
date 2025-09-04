@@ -128,6 +128,7 @@ def csrf_token_view(request):
     return Response({'csrfToken': get_token(request)})
 
 # === OTP FUNCTIONS ===
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 @csrf_exempt
