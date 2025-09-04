@@ -44,8 +44,12 @@ RUN mkdir -p ./realty
 COPY apps/realty-main/realty/__init__.py ./realty/
 COPY apps/realty-main/realty/settings_railway.py ./realty/
 COPY apps/realty-main/realty/urls_simple.py ./realty/
-COPY apps/realty-main/realty/auth_views_simple.py ./realty/  # ONLY THIS FILE EXISTS!
+COPY apps/realty-main/realty/auth_views_simple.py ./realty/
+COPY apps/realty-main/realty/models.py ./realty/
 COPY apps/realty-main/realty/wsgi.py ./realty/
+
+# Copy migrations
+COPY apps/realty-main/realty/migrations/ ./realty/migrations/
 
 # VERIFY: Double-check that only correct file exists
 RUN echo "=== ULTIMATE VERIFICATION ===" && \
