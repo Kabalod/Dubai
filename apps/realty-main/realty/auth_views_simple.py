@@ -27,6 +27,86 @@ User = get_user_model()
 OTP_CACHE_KEY = "otp:{email}"
 GOOGLE_STATE_CACHE_KEY = "google_state:{state}"
 
+# === OTP STORAGE FUNCTIONS ===
+def store_otp_data(email, data):
+    """Сохраняем OTP данные в кэш с fallback на сессии"""
+    cache_key = OTP_CACHE_KEY.format(email=email)
+    try:
+        cache.set(cache_key, data, timeout=600)
+        print(f"✅ OTP сохранен в кэш: {cache_key}")
+        return True
+    except Exception as e:
+        print(f"❌ Ошибка сохранения в кэш: {e}")
+        # Fallback: сохраняем в базе данных
+        try:
+            from django.contrib.sessions.models import Session
+            from django.utils import timezone
+            import json
+            
+            # Создаем временную запись в базе данных
+            from .models import OTPData
+            OTPData.objects.update_or_create(
+                email=email,
+                defaults={
+                    'data': json.dumps(data),
+                    'expires_at': timezone.now() + timezone.timedelta(minutes=10)
+                }
+            )
+            print(f"✅ OTP сохранен в БД как fallback: {email}")
+            return True
+        except Exception as db_error:
+            print(f"❌ Ошибка сохранения в БД: {db_error}")
+            return False
+
+def get_otp_data(email):
+    """Получаем OTP данные из кэша с fallback на БД"""
+    cache_key = OTP_CACHE_KEY.format(email=email)
+    try:
+        data = cache.get(cache_key)
+        if data:
+            print(f"✅ OTP найден в кэше: {cache_key}")
+            return data
+    except Exception as e:
+        print(f"❌ Ошибка получения из кэша: {e}")
+    
+    # Fallback: получаем из базы данных
+    try:
+        from .models import OTPData
+        from django.utils import timezone
+        import json
+        
+        otp_record = OTPData.objects.filter(
+            email=email,
+            expires_at__gt=timezone.now()
+        ).first()
+        
+        if otp_record:
+            data = json.loads(otp_record.data)
+            print(f"✅ OTP найден в БД: {email}")
+            return data
+    except Exception as db_error:
+        print(f"❌ Ошибка получения из БД: {db_error}")
+    
+    print(f"❌ OTP не найден для {email}")
+    return None
+
+def delete_otp_data(email):
+    """Удаляем OTP данные из кэша и БД"""
+    cache_key = OTP_CACHE_KEY.format(email=email)
+    try:
+        cache.delete(cache_key)
+        print(f"✅ OTP удален из кэша: {cache_key}")
+    except Exception as e:
+        print(f"❌ Ошибка удаления из кэша: {e}")
+    
+    # Также удаляем из БД
+    try:
+        from .models import OTPData
+        OTPData.objects.filter(email=email).delete()
+        print(f"✅ OTP удален из БД: {email}")
+    except Exception as db_error:
+        print(f"❌ Ошибка удаления из БД: {db_error}")
+
 # === HEALTH CHECK ===
 @api_view(['GET'])
 @permission_classes([AllowAny])
@@ -62,14 +142,13 @@ def send_otp(request):
         otp_code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
         
         # Сохраняем в cache на 10 минут
-        cache_key = OTP_CACHE_KEY.format(email=email)
         cache_data = {
             'code': otp_code,
             'attempts': 0,
             'max_attempts': 3,
             'created_at': timezone.now().isoformat()
         }
-        cache.set(cache_key, cache_data, timeout=600)  # 10 минут
+        store_otp_data(email, cache_data)
         
         # Отправляем email
         subject = 'Dubai Real Estate - Verification Code'
@@ -157,20 +236,19 @@ def verify_otp(request):
     
     try:
         # Получаем данные из cache
-        cache_key = OTP_CACHE_KEY.format(email=email)
-        print(f"🔍 Ищем OTP в кэше: {cache_key}")
-        cache_data = cache.get(cache_key)
-        print(f"🔍 Данные из кэша: {cache_data}")
+        print(f"🔍 Ищем OTP для: {email}")
+        cache_data = get_otp_data(email)
+        print(f"🔍 Данные OTP: {cache_data}")
         
         if not cache_data:
-            print(f"❌ OTP не найден в кэше для {email}")
+            print(f"❌ OTP не найден для {email}")
             return Response({
                 'error': 'No valid OTP code found for this email or code expired'
             }, status=400)
         
         # Проверяем попытки
         if cache_data['attempts'] >= cache_data['max_attempts']:
-            cache.delete(cache_key)
+            delete_otp_data(email)
             return Response({
                 'error': 'Too many failed attempts. Please request a new code.'
             }, status=400)
@@ -178,7 +256,7 @@ def verify_otp(request):
         # Проверяем код
         if cache_data['code'] != code:
             cache_data['attempts'] += 1
-            cache.set(cache_key, cache_data, timeout=600)
+            store_otp_data(email, cache_data)
             return Response({
                 'error': 'Invalid OTP code',
                 'attempts_left': cache_data['max_attempts'] - cache_data['attempts']
@@ -190,7 +268,7 @@ def verify_otp(request):
         cached_last_name = cache_data.get('last_name', last_name)
         
         # Код правильный - удаляем из cache
-        cache.delete(cache_key)
+        delete_otp_data(email)
         
         # Создаем или получаем пользователя
         with transaction.atomic():
@@ -276,7 +354,6 @@ def register_user(request):
         otp_code = ''.join([str(secrets.randbelow(10)) for _ in range(6)])
         
         # Сохраняем в cache на 10 минут (включая пароль и данные пользователя)
-        cache_key = OTP_CACHE_KEY.format(email=email)
         cache_data = {
             'code': otp_code,
             'password': password,  # Сохраняем пароль для создания пользователя
@@ -286,10 +363,10 @@ def register_user(request):
             'max_attempts': 3,
             'created_at': timezone.now().isoformat()
         }
-        print(f"💾 Сохраняем OTP в кэш: {cache_key}")
-        print(f"💾 Данные для кэша: {cache_data}")
-        cache.set(cache_key, cache_data, timeout=600)  # 10 минут
-        print(f"✅ OTP сохранен в кэш на 10 минут")
+        print(f"💾 Сохраняем OTP для: {email}")
+        print(f"💾 Данные OTP: {cache_data}")
+        store_otp_data(email, cache_data)
+        print(f"✅ OTP сохранен на 10 минут")
         
         # Отправляем email
         email_sent = True

@@ -23,6 +23,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'rest_framework',
     'rest_framework_simplejwt',
+    'realty',  # Добавляем наше приложение для моделей
 ]
 
 # Минимальный middleware
@@ -74,7 +75,9 @@ else:
     }
 
 # Cache настройки - Redis для Railway, локальный для разработки
-REDIS_URL = os.environ.get('REDIS_URL')
+REDIS_URL = os.environ.get('REDIS_URL') or os.environ.get('REDISCLOUD_URL')
+IS_RAILWAY = os.environ.get('RAILWAY_ENVIRONMENT_NAME') is not None
+
 if REDIS_URL:
     CACHES = {
         'default': {
@@ -86,6 +89,15 @@ if REDIS_URL:
         }
     }
     print(f"🗄️ Настроен Redis кэш: {REDIS_URL}")
+elif IS_RAILWAY:
+    # На Railway без Redis используем database cache
+    CACHES = {
+        'default': {
+            'BACKEND': 'django.core.cache.backends.db.DatabaseCache',
+            'LOCATION': 'cache_table',
+        }
+    }
+    print(f"🗄️ Настроен database кэш для Railway")
 else:
     # Fallback к локальному кэшу
     CACHES = {
@@ -232,3 +244,15 @@ else:
 print(f"🌍 Окружение: {'Railway' if IS_RAILWAY else 'Local'}")
 print(f"🔧 Email Backend: {EMAIL_BACKEND}")
 print(f"📨 From Email: {DEFAULT_FROM_EMAIL}")
+
+# Создаем таблицу кэша если используется database cache
+if IS_RAILWAY and CACHES['default']['BACKEND'] == 'django.core.cache.backends.db.DatabaseCache':
+    try:
+        from django.core.cache import cache
+        from django.core.management import execute_from_command_line
+        import sys
+        # Создаем таблицу кэша
+        execute_from_command_line(['manage.py', 'createcachetable'])
+        print(f"✅ Таблица кэша создана")
+    except Exception as e:
+        print(f"⚠️ Не удалось создать таблицу кэша: {e}")
