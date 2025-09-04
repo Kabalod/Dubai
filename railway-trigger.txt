@@ -1,0 +1,11 @@
+# Railway Webhook Trigger File
+# This file is created to force Railway webhook activation
+# Commit: 4d5e5f8 [005]
+# Timestamp: 2025-01-30 16:30 UTC
+# Purpose: Force rebuild with auth_views_simple.py
+
+EMERGENCY_TRIGGER=true
+FORCE_WEBHOOK=true
+AUTH_VIEWS_SIMPLE_REQUIRED=true
+COMMIT_HASH=4d5e5f8
+TIMESTAMP=2025-01-30T16:30:00Z

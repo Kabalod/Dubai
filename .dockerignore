@@ -2,146 +2,60 @@
 .git
 .gitignore
 
-# Node.js
-node_modules
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-.npm
-
 # Python
 __pycache__
 *.pyc
 *.pyo
 *.pyd
 .Python
-env
-pip-log.txt
-pip-delete-this-directory.txt
-venv
-.venv
-.env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+*.so
+.pytest_cache
+
+# Django
+*.sqlite3
+staticfiles
+media
+
+# Node.js (если есть)
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist
 
 # IDE
 .vscode
 .idea
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
-# Logs
-*.log
-logs
+# Apps not needed for backend
+apps/pfimport-main
+apps/parsing-main
 
-# Runtime data
-pids
-*.pid
-*.seed
-*.pid.lock
+# Frontend files
+src
+public
+package.json
+package-lock.json
+vite.config.ts
+tailwind.config.js
+postcss.config.js
+lingui.config.js
+tsconfig.json
+index.html
 
-# Coverage directory used by tools like istanbul
-coverage
-*.lcov
+# Documentation
+*.md
+docs/
 
-# nyc test coverage
-.nyc_output
-
-# Dependency directories
-jspm_packages/
-
-# Optional npm cache directory
-.npm
-
-# Optional REPL history
-.node_repl_history
-
-# Output of 'npm pack'
-*.tgz
-
-# Yarn Integrity file
-.yarn-integrity
-
-# dotenv environment variables file
-.env.test
-
-# parcel-bundler cache (https://parceljs.org/)
-.cache
-.parcel-cache
-
-# next.js build output
-.next
-
-# nuxt.js build output
-.nuxt
-
-# vuepress build output
-.vuepress/dist
-
-# Serverless directories
-.serverless
-
-# FuseBox cache
-.fusebox/
-
-# DynamoDB Local files
-.dynamodb/
-
-# TernJS port file
-.tern-port
-
-# Stores VSCode versions used for testing VSCode extensions
-.vscode-test
-
-# Temporary folders
-tmp/
-temp/
-
-# Build outputs
-dist/
-build/
-
-# Database files
-*.sqlite3
-*.db
-
-# Test files
-test/
-tests/
-*.test.js
-*.test.ts
-*.spec.js
-*.spec.ts
-
-# Documentation (optional - comment out if needed)
-# docs/
-# *.md
-
-# Legacy files
-legacy/
-old/
-backup/
-
-# Development scripts
+# Scripts and configs
 scripts/
+configs/
+*.sh
 *.ps1
 *.bat
-*.sh
-
-# Reports and guides
-*REPORT*.md
-*GUIDE*.md
-*README*.md
-CHANGELOG.md

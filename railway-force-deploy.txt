@@ -1,0 +1,13 @@
+# RAILWAY FORCE DEPLOY TRIGGER
+# This file forces Railway to redeploy
+# Created: 2025-01-30 17:45 UTC
+# Commit: a305c88
+# Action: Force rebuild after auth_views.py removal
+
+FORCE_REDEPLOY=true
+FILE_CONFLICT_RESOLVED=true
+AUTH_VIEWS_PY_DELETED=true
+USE_AUTH_VIEWS_SIMPLE=true
+TIMESTAMP=2025-01-30T17:45:00Z
+COMMIT_HASH=a305c88
+DOCKERFILE_UPDATED=true
