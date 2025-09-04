@@ -12,7 +12,7 @@ def root_view(request):
         "service": "dubai-auth-backend",
         "status": "ok",
         "version": "mvp-updated",
-        "cache_bust": "2025-01-30-01-30",
+        "cache_bust": "2025-01-30-02-00",
         "endpoints": {
             "health": "/api/health/",
             "csrf": "/api/csrf/",
