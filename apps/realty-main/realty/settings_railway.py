@@ -36,7 +36,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
 ]
 
-ROOT_URLCONF = 'realty.urls_simple'
+ROOT_URLCONF = 'realty.urls'
 
 # Templates для Django admin
 TEMPLATES = [
