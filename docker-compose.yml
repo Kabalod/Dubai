@@ -95,7 +95,7 @@ services:
   # ========================================
   dxb-frontend:
     build:
-      context: .
+      context: ./frontend
       dockerfile: Dockerfile
     container_name: dxb-frontend
     ports:
