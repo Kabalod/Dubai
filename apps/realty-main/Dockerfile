@@ -14,12 +14,9 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && \
     pip install --no-cache-dir -r requirements.txt
 
-# Копируем ТОЛЬКО необходимые файлы для авторизации
+# Копируем все приложение целиком, включая API и бизнес-логику
 COPY manage.py .
-COPY realty/__init__.py ./realty/
-COPY realty/settings_railway.py ./realty/
-COPY realty/auth_views_simple.py ./realty/
-COPY realty/wsgi.py ./realty/
+COPY realty ./realty/
 
 # Добавляем cache bust для принудительного обновления
 ENV CACHE_BUST=2025-01-30-02-00
