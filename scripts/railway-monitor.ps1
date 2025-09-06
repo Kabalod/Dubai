@@ -94,8 +94,9 @@ while ($attempts -lt $maxAttempts) {
     # Проверяем статус backend
     if (Test-BackendHealth) {
         Write-Host "✅ Backend работает! Проверьте:" -ForegroundColor Green
-        Write-Host "   🔗 Health: https://workerproject-production.up.railway.app/api/health/" -ForegroundColor White
-        Write-Host "   🔗 Frontend: https://frontend-production-5c48.up.railway.app/auth" -ForegroundColor White
+        Write-Host "   🔗 Health: https://dubai.up.railway.app/api/health/" -ForegroundColor White
+        Write-Host "   🔗 Frontend: https://frontend-production-261c.up.railway.app/auth" -ForegroundColor White
+        Write-Host ""
         break
     }
     

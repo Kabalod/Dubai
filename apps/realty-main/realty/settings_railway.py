@@ -136,7 +136,7 @@ GOOGLE_CLIENT_SECRET = os.environ.get('GOOGLE_CLIENT_SECRET', 'test-secret')
 # Для совместимости
 GOOGLE_OAUTH_CLIENT_ID = GOOGLE_CLIENT_ID
 GOOGLE_OAUTH_CLIENT_SECRET = GOOGLE_CLIENT_SECRET
-FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://workerproject-production.up.railway.app')
+FRONTEND_URL = os.environ.get('FRONTEND_URL', 'https://dubai.up.railway.app')
 
 # Статические файлы (минимум)
 STATIC_URL = '/static/'

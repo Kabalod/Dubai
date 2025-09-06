@@ -10,22 +10,10 @@
     try_files {path} /index.html
     
     # API endpoints - проксирование к backend
-    reverse_proxy /api/* https://workerproject-production.up.railway.app {
-        # Передаем заголовки
-        header_up Host {upstream_hostport}
-        header_up X-Real-IP {remote_host}
-        header_up X-Forwarded-For {remote_host}
-        header_up X-Forwarded-Proto {scheme}
-        
-        # CORS заголовки
-        header_down Access-Control-Allow-Origin *
-        header_down Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
-        header_down Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-        
-        # Настройки транспорта
-        transport http {
-            tls_insecure_skip_verify
-        }
+    handle /api/* {
+      reverse_proxy https://dubai.up.railway.app {
+        header_up Host {http.reverse_proxy.upstream.hostport}
+      }
     }
     
     # Статические файлы с кешированием

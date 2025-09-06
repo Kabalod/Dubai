@@ -9,13 +9,13 @@
 ## 🚀 PRODUCTION ENVIRONMENT - ПОЛНОСТЬЮ РАБОЧИЙ
 
 ### ✅ **Railway Backend**
-- **URL**: https://workerproject-production.up.railway.app
+- **URL**: https://dubai.up.railway.app
 - **Health Check**: ✅ `{"status": "ok", "timestamp": "2025-08-24T17:27:12"}`
 - **API Endpoints**: ✅ Все активны (`/api/health/`, `/api/auth/*`, `/api/profile/*`)
 - **Database**: ✅ PostgreSQL подключена, миграции применены
 
 ### ✅ **Frontend Application**
-- **URL**: https://frontend-production-5c48.up.railway.app/auth
+- **URL**: https://frontend-production-261c.up.railway.app/auth
 - **Status**: ✅ Доступен и загружается
 - **UI Components**: ✅ Profile, Payment, Auth интерфейсы готовы
 - **Integration**: ✅ Подключен к Backend API
@@ -102,9 +102,9 @@
 ## 🔗 ССЫЛКИ ДЛЯ ТЕСТИРОВАНИЯ
 
 ### **Production URLs:**
-- **Backend API**: https://workerproject-production.up.railway.app/api/health/
-- **Frontend App**: https://frontend-production-5c48.up.railway.app/auth  
-- **Admin Panel**: https://workerproject-production.up.railway.app/admin/
+- **Backend API**: https://dubai.up.railway.app/api/health/
+- **Frontend App**: https://frontend-production-261c.up.railway.app/auth  
+- **Admin Panel**: https://dubai.up.railway.app/admin/
 
 ### **Test Credentials:**
 - **OTP Test Email**: kbalodk@gmail.com (для тестирования OTP системы)

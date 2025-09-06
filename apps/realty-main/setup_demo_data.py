@@ -36,17 +36,27 @@ def setup_demo_data():
         for user in test_users:
             print(f"  👤 {user.username} - {user.email} (пароль: testpass123)")
         
-        print("\n🌐 Для тестирования MVP:")
-        print("  👤 Пользователи:")
-        print("    - Профиль: /api/profile/me/") 
-        print("    - Платежи: /api/admin/payments/")
-        print("    - Admin: /admin/")
-        print("  🏠 Недвижимость:")
-        print("    - API: /api/properties/")
-        print("    - Районы: /api/areas/") 
-        print("    - Статистика: /api/stats/")
-        print("    - Карта: /pfimport/map/")
-        print("  📱 Frontend: https://frontend-production-5c48.up.railway.app/")
+        if os.environ.get("RAILWAY_ENVIRONMENT"):
+            print("="*40)
+            print("🚀 Dubai Real Estate Platform (DEMO)")
+            print("="*40)
+            print("  Backend API: https://dubai.up.railway.app/api/")
+            print("  📱 Frontend: https://frontend-production-261c.up.railway.app/")
+            print("  🔑 Admin: https://dubai.up.railway.app/admin/")
+            print("  👤 User: admin / admin123")
+            print("="*40)
+        else:
+            print("\n🌐 Для тестирования MVP:")
+            print("  👤 Пользователи:")
+            print("    - Профиль: /api/profile/me/") 
+            print("    - Платежи: /api/admin/payments/")
+            print("    - Admin: /admin/")
+            print("  🏠 Недвижимость:")
+            print("    - API: /api/properties/")
+            print("    - Районы: /api/areas/") 
+            print("    - Статистика: /api/stats/")
+            print("    - Карта: /pfimport/map/")
+            print("  📱 Frontend: https://frontend-production-5c48.up.railway.app/")
         
     except Exception as e:
         print(f"❌ Ошибка при создании демо данных: {e}")

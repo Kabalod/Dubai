@@ -21,7 +21,7 @@
 #### 🚨 Railway Health Check
 ```bash
 # Проверить статус приложения
-curl -I https://workerproject-production.up.railway.app/api/health/
+curl -I https://dubai.up.railway.app/api/health/
 
 # Если 502/504 ошибки - проверить Railway logs
 # Использовать Railway CLI для диагностики:
@@ -117,7 +117,7 @@ POST /api/payment/mock - Mock оплата
 ### Начальная диагностика:
 ```bash
 # 1. Проверить Railway health
-curl -I https://workerproject-production.up.railway.app/api/health/
+curl -I https://dubai.up.railway.app/api/health/
 
 # 2. Проверить Git status
 git status

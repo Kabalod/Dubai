@@ -137,7 +137,7 @@ def get(self, request):
 ## 🧪 **КАК ПРОТЕСТИРОВАТЬ ИСПРАВЛЕНИЯ**
 
 ### **1. Тестирование логотипа:**
-1. Откройте: https://frontend-production-5c48.up.railway.app
+1. Откройте: https://frontend-production-261c.up.railway.app
 2. **Ожидаемый результат**: 
    - Логотип отображается как изображение (48px высота)
    - Нет лишнего текста "LOGO" 
@@ -145,7 +145,7 @@ def get(self, request):
 3. **Отладка**: Откройте DevTools Console для логов загрузки
 
 ### **2. Тестирование Google OAuth:**
-1. Откройте: https://frontend-production-5c48.up.railway.app/auth
+1. Откройте: https://frontend-production-261c.up.railway.app/auth
 2. Нажмите кнопку **"Sign in with Google"**
 3. **Ожидаемый результат**:
    - Никаких ошибок 401 invalid_client
@@ -169,7 +169,7 @@ def get(self, request):
 
 ### **Railway автоматически задеплоит:**
 1. **Backend**: https://workerproject-production.up.railway.app
-2. **Frontend**: https://frontend-production-5c48.up.railway.app  
+2. **Frontend**: https://frontend-production-261c.up.railway.app  
 
 *Обычно деплой занимает 2-3 минуты после push в GitHub*
 

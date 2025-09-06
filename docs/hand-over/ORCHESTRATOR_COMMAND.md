@@ -5,7 +5,7 @@
 Необходимо немедленно диагностировать и восстановить работоспособность Dubai MVP в production на Railway.
 
 ### 🚨 ТЕКУЩАЯ СИТУАЦИЯ
-- Проект развернут на Railway: `workerproject-production.up.railway.app`
+- Проект развернут на Railway: `dubai.up.railway.app`
 - Все изменения в ветке `prod` и отправлены на Railway
 - Обнаружена ошибка в PowerShell скрипте `quick-check.ps1`
 - Статус health check endpoints неизвестен
@@ -19,7 +19,7 @@
 ПОШАГОВЫЙ ПЛАН:
 
 1. ДИАГНОСТИКА [5 мин]
-   - Проверить https://workerproject-production.up.railway.app/api/health/
+   - Проверить https://dubai.up.railway.app/api/health/
    - Если 502/504 - проверить Railway logs
    - Зафиксировать все неработающие endpoints
 
@@ -68,7 +68,7 @@
 
 **Стек**: Django + React + Railway + PostgreSQL
 **Ветка**: prod (актуальная)  
-**Endpoint**: https://workerproject-production.up.railway.app
+**Endpoint**: https://dubai.up.railway.app
 **Документация**: docs/hand-over/AGENT_HANDOVER_PLAN.md
 
 **Критичные файлы**:

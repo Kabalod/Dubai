@@ -234,7 +234,7 @@ try {
                 # Финальное тестирование
                 Write-Status "🧪 Финальное тестирование..." "Cyan"
                 Write-Status "Backend: https://workerproject-production.up.railway.app/api/health/" "White"
-                Write-Status "Frontend: https://frontend-production-5c48.up.railway.app/auth" "White"
+                Write-Status "Frontend: https://frontend-production-261c.up.railway.app/auth" "White"
                 Write-Status "OTP Test: Введите kbalodk@gmail.com и нажмите SIGN UP" "White"
                 
                 exit 0

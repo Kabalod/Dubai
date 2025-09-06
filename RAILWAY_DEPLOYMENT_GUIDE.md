@@ -46,7 +46,7 @@ Railway сталкивается с ошибкой `exit code: 137` при ус�
 `https://railway.app/dashboard`
 
 ### **Production URL:**
-`https://workerproject-production.up.railway.app`
+`https://dubai.up.railway.app`
 
 ## ⚠️ **Если деплой не удается**
 

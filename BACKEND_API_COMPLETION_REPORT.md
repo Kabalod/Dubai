@@ -115,7 +115,7 @@ Starting development server at http://0.0.0.0:8000/
 ### 🌐 **Production URLs:**
 - **Backend API**: https://workerproject-production.up.railway.app
 - **Health Check**: https://workerproject-production.up.railway.app/api/health/
-- **Frontend**: https://frontend-production-5c48.up.railway.app
+- **Frontend**: https://frontend-production-261c.up.railway.app
 
 ---
 

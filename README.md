@@ -17,9 +17,9 @@
 ### 🌐 Продакшен (Railway)
 Система уже развёрнута и готова к использованию:
 
-- **Frontend**: https://frontend-production-5c48.up.railway.app/
-- **Backend API**: https://workerproject-production.up.railway.app/api/health/
-- **OTP Test**: https://frontend-production-5c48.up.railway.app/auth
+- **Frontend**: https://frontend-production-261c.up.railway.app/
+- **Backend API**: https://dubai.up.railway.app/api/health/
+- **OTP Test**: https://frontend-production-261c.up.railway.app/auth
 
 ### 💻 Локальная разработка
 
@@ -153,8 +153,8 @@ CMD ["nginx", "-g", "daemon off;"]
 DATABASE_URL=postgresql://...
 SECRET_KEY=your-secret-key
 DEBUG=false
-DJANGO_ALLOWED_HOSTS=workerproject-production.up.railway.app
-CORS_ALLOWED_ORIGINS=https://frontend-production-5c48.up.railway.app
+DJANGO_ALLOWED_HOSTS=dubai.up.railway.app
+CORS_ALLOWED_ORIGINS=https://frontend-production-261c.up.railway.app
 SENDGRID_API_KEY=your-sendgrid-key
 DEFAULT_FROM_EMAIL=your-email@domain.com
 SECURE_SSL_REDIRECT=true
@@ -180,7 +180,7 @@ VITE_API_BASE_URL=https://workerproject-production.up.railway.app
 ```
 
 ### Ручное тестирование OTP
-1. Откройте https://frontend-production-5c48.up.railway.app/auth
+1. Откройте https://frontend-production-261c.up.railway.app/auth
 2. Введите email: `kbalodk@gmail.com`
 3. Нажмите **SIGN UP**
 4. Проверьте почту на код от SendGrid
@@ -195,8 +195,8 @@ VITE_API_BASE_URL=https://workerproject-production.up.railway.app
 - **Статус**: `npx @railway/cli@latest status`
 
 ### Health Checks
-- **Backend**: https://workerproject-production.up.railway.app/api/health/
-- **Frontend**: https://frontend-production-5c48.up.railway.app/
+- **Backend**: https://dubai.up.railway.app/api/health/
+- **Frontend**: https://frontend-production-261c.up.railway.app/
 - **Database**: Автоматически через Django ORM
 
 ## 🚀 CI/CD Pipeline

@@ -28,8 +28,8 @@
 ✅ **Без ошибок TypeScript**: Все типы валидны
 
 ### 4️⃣ **System Integration - Финальная проверка**
-✅ **Backend API**: https://workerproject-production.up.railway.app/api/health/ - работает  
-✅ **Frontend**: https://frontend-production-5c48.up.railway.app/auth - доступен  
+✅ **Backend API**: https://dubai.up.railway.app/api/health/ - работает  
+✅ **Frontend**: https://frontend-production-261c.up.railway.app/auth - доступен  
 ✅ **Railway deployment**: Автоматически развернут через GitHub Actions  
 ✅ **Database migrations**: Все применены без ошибок
 
@@ -87,8 +87,8 @@
 ## 🚀 **ГОТОВНОСТЬ К ИСПОЛЬЗОВАНИЮ**
 
 ### **Для разработчиков:**
-- 🔗 **Backend API**: https://workerproject-production.up.railway.app/api/
-- 🔗 **Frontend**: https://frontend-production-5c48.up.railway.app/
+- 🔗 **Backend API**: https://dubai.up.railway.app/api/
+- 🔗 **Frontend**: https://frontend-production-261c.up.railway.app/
 - 📚 **API Documentation**: Все endpoints протестированы и работают
 - 🛠️ **Development**: `git pull` + проект готов к дальнейшей разработке
 

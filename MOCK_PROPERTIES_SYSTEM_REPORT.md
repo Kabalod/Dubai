@@ -121,16 +121,16 @@ const stats = await fetch('/api/stats/');
 ### **API Endpoints (готовы к использованию):**
 ```bash
 # Production Railway URLs:
-https://workerproject-production.up.railway.app/api/properties/
-https://workerproject-production.up.railway.app/api/areas/
-https://workerproject-production.up.railway.app/api/stats/
+https://dubai.up.railway.app/api/properties/
+https://dubai.up.railway.app/api/areas/
+https://dubai.up.railway.app/api/stats/
 ```
 
 ### **Существующие PFImport URLs (все еще работают):**
 ```bash
-https://workerproject-production.up.railway.app/pfimport/sale/   # HTML страница
-https://workerproject-production.up.railway.app/pfimport/rent/   # HTML страница  
-https://workerproject-production.up.railway.app/pfimport/map/    # Карта недвижимости
+https://dubai.up.railway.app/pfimport/sale/   # HTML страница
+https://dubai.up.railway.app/pfimport/rent/   # HTML страница  
+https://dubai.up.railway.app/pfimport/map/    # Карта недвижимости
 ```
 
 ---

@@ -110,7 +110,7 @@ from django.http import HttpResponseRedirect
 
 ### **Production URLs:**
 - 🌐 **Backend API**: https://workerproject-production.up.railway.app/api/
-- 🌐 **Frontend**: https://frontend-production-5c48.up.railway.app/auth
+- 🌐 **Frontend**: https://frontend-production-261c.up.railway.app/auth
 - 🔍 **Health Check**: https://workerproject-production.up.railway.app/api/health/
 
 ### **Google OAuth endpoints:**
@@ -118,7 +118,7 @@ from django.http import HttpResponseRedirect
 - 🔄 **Callback**: https://workerproject-production.up.railway.app/api/auth/google/callback/
 
 ### **Тестирование:**
-1. Откройте https://frontend-production-5c48.up.railway.app/auth
+1. Откройте https://frontend-production-261c.up.railway.app/auth
 2. Нажмите кнопку "Sign in with Google" 
 3. Произойдет редирект на Google OAuth (mock для MVP)
 4. После авторизации вернетесь с JWT токенами
