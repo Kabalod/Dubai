@@ -37,7 +37,7 @@ jobs:
         run: pip check
 
       - name: Frontend deps check (Node)
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: '22.x'
         # quick sanity: install and build to validate lock integrity and tooling
