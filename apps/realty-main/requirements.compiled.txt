@@ -23,7 +23,7 @@ django==5.2.5
     #   djangorestframework-simplejwt
 django-cache-url==3.4.5
     # via environs
-django-cors-headers==4.7.0
+django-cors-headers==4.9.0
     # via -r requirements.in
 djangorestframework==3.16.1
     # via
@@ -51,9 +51,7 @@ python-dotenv==1.1.1
     # via environs
 sqlparse==0.5.3
     # via django
-tzdata==2025.2
-    # via
-    #   django
-    #   psycopg
+typing-extensions==4.15.0
+    # via psycopg
 whitenoise[brotli]==6.9.0
     # via -r requirements.in
