@@ -39,7 +39,7 @@ marshmallow==4.0.0
     # via environs
 packaging==25.0
     # via gunicorn
-prometheus-client==0.22.1
+prometheus-client==0.23.1
     # via -r requirements.in
 psycopg[binary]==3.2.9
     # via -r requirements.in
@@ -51,9 +51,7 @@ python-dotenv==1.1.1
     # via environs
 sqlparse==0.5.3
     # via django
-tzdata==2025.2
-    # via
-    #   django
-    #   psycopg
+typing-extensions==4.15.0
+    # via psycopg
 whitenoise[brotli]==6.9.0
     # via -r requirements.in
