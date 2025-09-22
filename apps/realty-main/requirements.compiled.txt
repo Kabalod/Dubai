@@ -51,9 +51,7 @@ python-dotenv==1.1.1
     # via environs
 sqlparse==0.5.3
     # via django
-tzdata==2025.2
-    # via
-    #   django
-    #   psycopg
-whitenoise[brotli]==6.9.0
+typing-extensions==4.15.0
+    # via psycopg
+whitenoise[brotli]==6.11.0
     # via -r requirements.in
