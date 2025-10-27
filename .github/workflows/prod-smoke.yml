@@ -59,7 +59,7 @@ jobs:
           echo "request_id=$(grep -i '^X-Railway-Request-Id:' -m 1 otp.txt | awk '{print $2}' | tr -d '\r')" >> $GITHUB_OUTPUT
 
       - name: Attach artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: prod-smoke-responses
           path: |
